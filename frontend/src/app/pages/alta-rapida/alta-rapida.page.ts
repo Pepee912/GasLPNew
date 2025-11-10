@@ -26,7 +26,9 @@ export class AltaRapidaPage implements OnInit {
   // Estado de búsqueda/selección
   clienteExistente: ClienteLite | null = null;
   domiciliosExistentes: DomicilioLite[] = [];
-  usarDomicilioExistente = true;
+
+  // Por defecto: DOMICILIO NUEVO
+  usarDomicilioExistente = false;
   domicilioElegidoDocumentId: string | number | null = null;
 
   // Catálogos
@@ -70,19 +72,29 @@ export class AltaRapidaPage implements OnInit {
     private alert: AlertController,
     private nav: NavController,
     private router: Router,
-  ) {}
+  ) {
+    // Desactivamos selects de servicio al inicio.
+    // Se habilitan al cargar catálogos si hay datos.
+    this.fSrv.get('tipo_servicio')?.disable({ emitEvent: false });
+    this.fSrv.get('ruta')?.disable({ emitEvent: false });
+  }
 
   async ngOnInit() {
+    // Cargar catálogos (tipos de servicio, rutas)
     await this.cargarCatalogos();
 
-    // Leer teléfono desde Clientes (Nuevo servicio) o desde búsqueda sin resultados
+    // Leer teléfono desde:
+    // - Agregar servicio (cliente existente)
+    // - Búsqueda sin resultados (alta nueva con teléfono ya puesto)
     const state = history.state as { telefono?: string } | undefined;
     const telFromState = this.sanitizePhone(state?.telefono || '');
 
     if (telFromState) {
       this.fCliente.patchValue({ telefono: telFromState });
-      // 👇 En este caso sí intentamos buscar cliente existente
       await this.buscarClientePorTelefono();
+    } else {
+      // Si entro por "Nuevo" sin estado, aseguro DOMICILIO NUEVO
+      this.usarDomicilioExistente = false;
     }
   }
 
@@ -141,6 +153,14 @@ export class AltaRapidaPage implements OnInit {
   // ----------------- Catálogos -----------------
   private async cargarCatalogos() {
     this.loadingCatalogos = true;
+
+    const tipoCtrl = this.fSrv.get('tipo_servicio');
+    const rutaCtrl = this.fSrv.get('ruta');
+
+    // Mientras carga, deshabilitados
+    tipoCtrl?.disable({ emitEvent: false });
+    rutaCtrl?.disable({ emitEvent: false });
+
     try {
       const [tsRes, rtRes] = await Promise.all([
         this.tipoSrv.list(),
@@ -152,23 +172,39 @@ export class AltaRapidaPage implements OnInit {
 
       this.tipoServicios = ts.map((x: any) => this.flat(x));
       this.rutas = rt.map((x: any) => this.flat(x));
+
+      // Habilitar o dejar deshabilitados según haya datos
+      if (this.tipoServicios.length) {
+        tipoCtrl?.enable({ emitEvent: false });
+      } else {
+        tipoCtrl?.disable({ emitEvent: false });
+      }
+
+      if (this.rutas.length) {
+        rutaCtrl?.enable({ emitEvent: false });
+      } else {
+        rutaCtrl?.disable({ emitEvent: false });
+      }
     } catch (e) {
       console.error('Error cargando catálogos', e);
       this.tipoServicios = [];
       this.rutas = [];
+
+      // En error, se quedan deshabilitados
+      tipoCtrl?.disable({ emitEvent: false });
+      rutaCtrl?.disable({ emitEvent: false });
     } finally {
       this.loadingCatalogos = false;
     }
   }
 
-  // ----------------- Buscar cliente (solo usado internamente en ngOnInit) -----------------
+  // ----------------- Buscar cliente por teléfono -----------------
   async buscarClientePorTelefono() {
     const tel = this.sanitizePhone(this.fCliente.value.telefono || '');
     this.fCliente.patchValue({ telefono: tel });
 
     if (!/^\d{10}$/.test(tel)) {
-      // Aquí no mostramos error porque puede ser flujo de alta nueva,
-      // simplemente no encontramos nada.
+      // Flujo de alta nueva sin cliente previo
       this.clienteExistente = null;
       this.domiciliosExistentes = [];
       this.usarDomicilioExistente = false;
@@ -187,24 +223,29 @@ export class AltaRapidaPage implements OnInit {
       }
 
       if (raw) {
+        // Cliente encontrado
         this.clienteExistente = this.flat(raw);
 
+        // Buscar domicilios del cliente
         const dRes = await this.domiciliosSrv.listByCliente(this.clienteExistente);
         const listaRaw = dRes?.data ?? [];
         this.domiciliosExistentes = listaRaw.map((d: any) => this.flat(d));
 
+        // Si tiene domicilios, sugerimos usar uno existente
         this.usarDomicilioExistente = this.domiciliosExistentes.length > 0;
+
         const firstDom = this.domiciliosExistentes[0];
         this.domicilioElegidoDocumentId = firstDom ? (this.docIdOf(firstDom) as any) : null;
 
         await this.msg('Cliente encontrado. Puedes crear el servicio.', 'success');
       } else {
+        // Sin cliente para ese teléfono
         this.clienteExistente = null;
         this.domiciliosExistentes = [];
         this.usarDomicilioExistente = false;
       }
     } catch {
-      // Si falla (404, etc.), asumimos flujo de alta nueva
+      // Si falla (404, etc.), asumimos alta nueva
       this.clienteExistente = null;
       this.domiciliosExistentes = [];
       this.usarDomicilioExistente = false;
@@ -247,8 +288,10 @@ export class AltaRapidaPage implements OnInit {
       let domicilioRef: string | number | null = null;
 
       if (this.usarDomicilioExistente && this.domicilioElegidoDocumentId) {
+        // Usa un domicilio existente
         domicilioRef = this.domicilioElegidoDocumentId;
       } else {
+        // Crea domicilio nuevo
         const domPayload: AnyEntity = {
           calle: this.fDom.value.calle || '',
           numero: this.fDom.value.numero || '',

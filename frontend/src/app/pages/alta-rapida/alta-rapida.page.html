@@ -1,3 +1,4 @@
+<!-- src/app/pages/alta-rapida/alta-rapida.page.html -->
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
@@ -24,16 +25,23 @@
             inputmode="numeric"
             formControlName="telefono">
           </ion-input>
-          <!-- 🔹 Ya no hay botón Buscar -->
         </ion-item>
 
         <!-- Nuevo cliente -->
         <ng-container *ngIf="!clienteExistente">
           <ion-item>
-            <ion-input label="Nombre" label-placement="floating" formControlName="nombre"></ion-input>
+            <ion-input
+              label="Nombre"
+              label-placement="floating"
+              formControlName="nombre">
+            </ion-input>
           </ion-item>
           <ion-item>
-            <ion-input label="Apellidos" label-placement="floating" formControlName="apellidos"></ion-input>
+            <ion-input
+              label="Apellidos"
+              label-placement="floating"
+              formControlName="apellidos">
+            </ion-input>
           </ion-item>
           <ion-item lines="none">
             <ion-toggle formControlName="activo">Activo</ion-toggle>
@@ -67,6 +75,7 @@
     </ion-card-header>
     <ion-card-content>
 
+      <!-- Toggle solo si HAY domicilios existentes -->
       <ion-item *ngIf="domiciliosExistentes.length">
         <ion-toggle
           [(ngModel)]="usarDomicilioExistente"
@@ -75,6 +84,7 @@
         </ion-toggle>
       </ion-item>
 
+      <!-- Selección de domicilio existente -->
       <div *ngIf="usarDomicilioExistente && domiciliosExistentes.length">
         <ion-item>
           <ion-select
@@ -90,21 +100,43 @@
         </ion-item>
       </div>
 
+      <!-- Formulario de domicilio NUEVO -->
       <div *ngIf="!usarDomicilioExistente" [formGroup]="fDom">
         <ion-item>
-          <ion-input label="Calle" label-placement="floating" formControlName="calle"></ion-input>
+          <ion-input
+            label="Calle"
+            label-placement="floating"
+            formControlName="calle">
+          </ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Número" label-placement="floating" formControlName="numero"></ion-input>
+          <ion-input
+            label="Número"
+            label-placement="floating"
+            formControlName="numero">
+          </ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Colonia" label-placement="floating" formControlName="colonia"></ion-input>
+          <ion-input
+            label="Colonia"
+            label-placement="floating"
+            formControlName="colonia">
+          </ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="CP" label-placement="floating" formControlName="cp" inputmode="numeric"></ion-input>
+          <ion-input
+            label="CP"
+            label-placement="floating"
+            formControlName="cp"
+            inputmode="numeric">
+          </ion-input>
         </ion-item>
         <ion-item>
-          <ion-textarea label="Referencia" label-placement="floating" formControlName="referencia"></ion-textarea>
+          <ion-textarea
+            label="Referencia"
+            label-placement="floating"
+            formControlName="referencia">
+          </ion-textarea>
         </ion-item>
         <ion-item lines="none">
           <ion-toggle formControlName="activo">Activo</ion-toggle>
@@ -129,7 +161,6 @@
             label-placement="floating"
             formControlName="tipo_servicio"
             interface="popover"
-            [disabled]="loadingCatalogos || !tipoServicios.length"
             placeholder="Selecciona un tipo (si aplica)">
             <ion-select-option
               *ngFor="let t of tipoServicios"
@@ -149,7 +180,6 @@
             label-placement="floating"
             formControlName="ruta"
             interface="popover"
-            [disabled]="loadingCatalogos || !rutas.length"
             placeholder="Selecciona una ruta (si aplica)">
             <ion-select-option
               *ngFor="let r of rutas"
