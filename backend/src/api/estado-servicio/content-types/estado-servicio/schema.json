@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "estado_servicios",
+  "info": {
+    "singularName": "estado-servicio",
+    "pluralName": "estado-servicios",
+    "displayName": "Estado_Servicio"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "servicio": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::servicio.servicio",
+      "mappedBy": "estado_servicio"
+    },
+    "tipo": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

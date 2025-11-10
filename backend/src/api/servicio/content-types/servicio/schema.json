@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "servicios",
+  "info": {
+    "singularName": "servicio",
+    "pluralName": "servicios",
+    "displayName": "Servicio"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "cliente": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cliente.cliente",
+      "inversedBy": "servicios"
+    },
+    "domicilio": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::domicilio.domicilio",
+      "inversedBy": "servicios"
+    },
+    "ruta": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ruta.ruta",
+      "inversedBy": "servicios"
+    },
+    "tipo_servicio": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tipo-servicio.tipo-servicio",
+      "inversedBy": "servicios"
+    },
+    "observacion": {
+      "type": "text"
+    },
+    "fecha_cancelado": {
+      "type": "datetime"
+    },
+    "fecha_surtido": {
+      "type": "datetime"
+    },
+    "fecha_programado": {
+      "type": "datetime"
+    },
+    "estado_servicio": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::estado-servicio.estado-servicio",
+      "inversedBy": "servicio"
+    }
+  }
+}

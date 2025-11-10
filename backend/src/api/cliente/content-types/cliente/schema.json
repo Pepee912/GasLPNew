@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "clientes",
+  "info": {
+    "singularName": "cliente",
+    "pluralName": "clientes",
+    "displayName": "Cliente"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string"
+    },
+    "apellidos": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 10,
+      "required": true
+    },
+    "estado": {
+      "type": "boolean",
+      "required": false,
+      "default": true
+    },
+    "servicios": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::servicio.servicio",
+      "mappedBy": "cliente"
+    },
+    "domicilios": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::domicilio.domicilio",
+      "mappedBy": "cliente"
+    }
+  }
+}
