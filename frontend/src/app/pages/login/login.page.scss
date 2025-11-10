@@ -1,0 +1,254 @@
+/* Fondo general */
+.login-background {
+  --background: #fff7f2;
+}
+
+/* Centrado de la tarjeta */
+.login-wrapper {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Tarjeta principal */
+.login-card {
+  width: 100%;
+  max-width: 920px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Quitar padding default de grid */
+.login-grid,
+.login-row {
+  height: 100%;
+  padding: 0;
+}
+
+.panel-col,
+.illustration-col {
+  padding: 0;
+}
+
+/* Panel formulario */
+.login-panel {
+  height: 100%;
+  padding: 40px 32px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-name {
+  font-size: 1rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ff7b3a;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.login-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #213549;
+  margin: 0 0 8px;
+}
+
+.login-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+/* Inputs */
+.login-item {
+  --background: transparent;
+  --inner-padding-start: 0;
+  --inner-padding-end: 0;
+  --min-height: 56px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  padding: 2px 10px;
+  background: #faf4ee;
+  --highlight-height: 0;
+}
+
+.login-item ion-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.login-item ion-input {
+  font-size: 0.95rem;
+  color: #000;            /* texto negro */
+  --color: #000;
+}
+
+/* Botón principal */
+.btn-primary {
+  margin-top: 12px;
+  --background: #ff7b3a;
+  --background-activated: #e3692f;
+  --background-focused: #ff7b3a;
+  --border-radius: 999px;
+  --box-shadow: 0 10px 25px rgba(255, 123, 58, 0.45);
+  font-weight: 600;
+}
+
+/* Botón Google */
+.btn-google {
+  margin-top: 10px;
+  --border-radius: 999px;
+  --border-color: #d0d7ff;
+  --color: #374151;
+  --background: #ffffff;
+  --background-activated: #f3f4ff;
+  font-weight: 500;
+}
+
+.btn-google ion-icon {
+  font-size: 1.1rem;
+}
+
+/* Link contraseña */
+.forgot-link {
+  margin-top: 14px;
+  align-self: center;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+
+/* Columna ilustración */
+.login-illustration {
+  height: 100%;
+  background: linear-gradient(180deg, #fff3e3, #ffe0c4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+
+/* Contenedor llama */
+.gas-graphic {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+/* Círculos de fondo */
+.gas-circle-bg,
+.gas-circle-inner {
+  position: absolute;
+  border-radius: 999px;
+}
+
+.gas-circle-bg {
+  width: 220px;
+  height: 220px;
+  background: #ffd6ae;
+  opacity: 0.7;
+  top: 0;
+  left: 0;
+}
+
+.gas-circle-inner {
+  width: 160px;
+  height: 160px;
+  background: #ffece0;
+  top: 30px;
+  left: 30px;
+}
+
+/* Base del quemador */
+.gas-base {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 42px;
+  background: #ffe8cf;
+  border-radius: 50% / 90%;
+  box-shadow: 0 10px 20px rgba(206, 134, 72, 0.55);
+}
+
+/* Llamas - mismas clases base */
+.gas-flame {
+  position: absolute;
+  bottom: 54px;
+  border-radius: 50% 50% 50% 50% / 70% 70% 35% 35%;
+  background: radial-gradient(circle at 50% 15%, #ffe9c8 0, #ff7b3a 55%, #c14200 100%);
+  box-shadow: 0 12px 30px rgba(193, 66, 0, 0.6);
+}
+
+/* Llama principal */
+.gas-flame-main {
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 120px;
+}
+
+/* Llamas laterales */
+.gas-flame-left {
+  left: 50%;
+  transform: translateX(-50%) translateX(-40px) rotate(-10deg);
+  width: 48px;
+  height: 95px;
+  opacity: 0.85;
+}
+
+.gas-flame-right {
+  left: 50%;
+  transform: translateX(-50%) translateX(40px) rotate(10deg);
+  width: 48px;
+  height: 95px;
+  opacity: 0.85;
+}
+
+/* Texto bajo la ilustración */
+.illustration-text {
+  margin-top: 28px;
+  font-size: 0.95rem;
+  color: #5b4a3b;
+  text-align: center;
+  max-width: 260px;
+}
+
+/* Ajustes móviles */
+@media (max-width: 768px) {
+  .login-panel {
+    padding: 28px 22px 24px;
+  }
+
+  .login-illustration {
+    padding: 24px 18px 32px;
+  }
+
+  .gas-graphic {
+    width: 180px;
+    height: 180px;
+  }
+
+  .gas-circle-bg {
+    width: 180px;
+    height: 180px;
+  }
+
+  .gas-circle-inner {
+    width: 130px;
+    height: 130px;
+    top: 25px;
+    left: 25px;
+  }
+}

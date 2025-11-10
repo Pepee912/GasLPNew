@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/clientes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Editar Cliente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ng-container *ngIf="!loading; else skel">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <ion-item>
+        <ion-input label="Nombre *" label-placement="floating" formControlName="nombre"></ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">
+        Ingresa al menos 2 caracteres.
+      </ion-note>
+
+      <ion-item>
+        <ion-input label="Apellidos" label-placement="floating" formControlName="apellidos"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Teléfono (10 dígitos) *" label-placement="floating" inputmode="numeric" formControlName="telefono"></ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="form.controls.telefono.touched && form.controls.telefono.invalid">
+        Debe tener exactamente 10 dígitos.
+      </ion-note>
+
+      <ion-item lines="none">
+        <ion-toggle formControlName="estado">Activo</ion-toggle>
+      </ion-item>
+
+      <ion-button type="submit" expand="block" [disabled]="saving || form.invalid">
+        {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+      </ion-button>
+    </form>
+  </ng-container>
+
+  <ng-template #skel>
+    <ion-list>
+      <ion-item *ngFor="let s of [1,2,3]">
+        <ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-content>

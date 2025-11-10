@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Clientes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="nuevoCliente()">Nuevo</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+    <ion-input
+      label="Buscar por teléfono"
+      label-placement="floating"
+      placeholder="4921234567"
+      [(ngModel)]="telefono"
+      (ngModelChange)="onTelefonoChange($event)">
+    </ion-input>
+    <ion-button slot="end" (click)="buscarPorTelefono()">Buscar</ion-button>
+    <ion-button slot="end" fill="clear" (click)="clearSearch()">Limpiar</ion-button>
+  </ion-item>
+
+  <ion-refresher slot="fixed" (ionRefresh)="load($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Mensaje cuando no hay teléfono y no hay clientes (caso raro) -->
+  <ion-item lines="none" *ngIf="!telefono && !clientes.length && !loading && !searching">
+    <ion-label color="medium">
+      <ion-icon name="search-outline" slot="start"></ion-icon>
+      Ingresa un número de teléfono o desliza hacia abajo para ver clientes.
+    </ion-label>
+  </ion-item>
+
+  <ng-container *ngIf="!loading && !searching; else skeletons">
+
+    <ion-list *ngIf="clientes?.length; else noData">
+      <ion-item *ngFor="let c of clientes">
+        <ion-label>
+          <h2>
+            {{ c.attributes?.nombre || c.nombre }}
+            {{ c.attributes?.apellidos || c.apellidos }}
+          </h2>
+          <p>Tel: {{ c.attributes?.telefono || c.telefono }}</p>
+          <p>Estado: {{ (c.attributes?.estado ?? c.estado) ? 'Activo' : 'Inactivo' }}</p>
+          <small>
+            ID: {{ c.id }} |
+            docId: {{ c.documentId || c.attributes?.documentId || '—' }}
+          </small>
+        </ion-label>
+
+        <ion-buttons slot="end">
+          <ion-button
+            color="primary"
+            [routerLink]="['/callcenter/alta-rapida']"
+            [state]="{ telefono: (c.attributes?.telefono || c.telefono) }">
+            Agregar servicio
+          </ion-button>
+
+          <ion-button color="medium" (click)="onEdit(c)">Editar</ion-button>
+          <ion-button color="danger" (click)="onDelete(c)">Eliminar</ion-button>
+        </ion-buttons>
+
+      </ion-item>
+    </ion-list>
+
+    <!-- Infinite scroll solo cuando NO hay filtro de teléfono -->
+    <ion-infinite-scroll
+      *ngIf="!telefono && (page * pageSize) < total"
+      threshold="100px"
+      (ionInfinite)="loadMore($event)">
+      <ion-infinite-scroll-content
+        loadingSpinner="bubbles"
+        loadingText="Cargando más clientes...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
+  </ng-container>
+
+  <ng-template #skeletons>
+    <ion-list>
+      <ion-item *ngFor="let s of [1,2,3,4,5]">
+        <ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+
+  <ng-template #noData>
+    <ion-item lines="none">
+      <ion-label color="medium">Sin clientes para mostrar.</ion-label>
+    </ion-item>
+  </ng-template>
+
+</ion-content>

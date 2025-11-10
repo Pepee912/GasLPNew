@@ -1,0 +1,168 @@
+.dashboard-background {
+  --background: #fff7f2;
+}
+
+.dashboard-header ion-toolbar {
+  --background: transparent;
+  --border-color: transparent;
+  color: #213549;
+}
+
+.dashboard-wrapper {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.dashboard-card {
+  width: 100%;
+  max-width: 960px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.app-name {
+  font-size: 0.9rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ff7b3a;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.dashboard-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #213549;
+  margin: 0 0 8px;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Usuario */
+.user-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-icon {
+  font-size: 2.4rem;
+  color: #ff7b3a;
+}
+
+.user-name {
+  margin: 0;
+  font-weight: 600;
+  color: #213549;
+}
+
+.user-role {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+/* Grid módulos */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.module-card {
+  background: #faf4ee;
+  border-radius: 18px;
+  padding: 18px 18px 20px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.04);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
+}
+
+.module-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.module-icon ion-icon {
+  font-size: 1.4rem;
+}
+
+.module-title {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #213549;
+}
+
+.module-text {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.module-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ff7b3a;
+}
+
+/* Colores por módulo */
+.module-clientes .module-icon {
+  background: #ffe8cf;
+  color: #ff7b3a;
+}
+
+.module-usuarios .module-icon {
+  background: #e0edff;
+  color: #4364d8;
+}
+
+.module-servicios .module-icon {
+  background: #ffe0d7;
+  color: #e35421;
+}
+
+@media (max-width: 768px) {
+  .dashboard-card {
+    padding: 22px 18px 20px;
+  }
+
+  .dashboard-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

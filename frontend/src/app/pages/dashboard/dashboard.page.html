@@ -1,0 +1,93 @@
+<ion-header [translucent]="true" class="dashboard-header">
+  <ion-toolbar>
+    <ion-title>Panel principal</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="logout()">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Cerrar sesión
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="dashboard-background">
+  <div class="dashboard-wrapper">
+    <div class="dashboard-card">
+      <!-- Encabezado -->
+      <div class="dashboard-top">
+        <div>
+          <!-- <p class="app-name">ACUPAZ GAS</p> -->
+          <h1 class="dashboard-title">Dashboard</h1>
+          <p class="dashboard-subtitle">
+            Selecciona una sección para gestionar la información del sistema.
+          </p>
+        </div>
+
+        <!-- Resumen de usuario -->
+        <div class="user-summary" *ngIf="user">
+          <ion-icon name="person-circle-outline" class="user-icon"></ion-icon>
+          <div>
+            <p class="user-name">{{ user.username }}</p>
+            <p class="user-role">{{ userRoleLabel }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de módulos -->
+      <div class="dashboard-grid">
+        <!-- CLIENTES -->
+        <div
+          class="module-card module-clientes"
+          *ngIf="canViewClientes"
+          (click)="goClientes()">
+          <div class="module-icon">
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Clientes</h2>
+          <p class="module-text">
+            Consulta, registra y actualiza la información de los clientes.
+          </p>
+          <span class="module-link">Ir a Clientes</span>
+        </div>
+
+        <!-- USUARIOS -->
+        <div
+          class="module-card module-usuarios"
+          *ngIf="canViewUsuarios"
+          (click)="goUsuarios()">
+          <div class="module-icon">
+            <ion-icon name="person-add-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Usuarios</h2>
+          <p class="module-text">
+            Administra cuentas y permisos del personal del sistema.
+          </p>
+          <span class="module-link">Ir a Usuarios</span>
+        </div>
+
+        <!-- SERVICIOS -->
+        <div
+          class="module-card module-servicios"
+          *ngIf="canViewServicios"
+          (click)="goServicios()">
+          <div class="module-icon">
+            <ion-icon name="flame-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Servicios</h2>
+          <p class="module-text">
+            Revisa, asigna y da seguimiento a los servicios de gas.
+          </p>
+          <span class="module-link">Ir a Servicios</span>
+        </div>
+      </div>
+
+      <!-- Mensaje si no tiene módulos asignados -->
+      <p
+        *ngIf="!canViewClientes && !canViewUsuarios && !canViewServicios"
+        style="margin-top:16px; font-size:0.85rem; color:#9ca3af;">
+        No tienes módulos asignados para tu rol actual.
+      </p>
+    </div>
+  </div>
+</ion-content>

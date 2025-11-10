@@ -1,0 +1,13 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>forgot</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-input [(ngModel)]="email" type="email" placeholder="Introduce el correo electronico"></ion-input>
+
+  <ion-button (click)="forgot()" expand="block" fill="clear" shape="round">
+    Recuperar contraseña
+  </ion-button>
+</ion-content>
