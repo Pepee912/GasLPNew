@@ -12,6 +12,13 @@ export class EstadoServicioService {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
+  private unwrapCollection(res: any) {
+    const raw = res?.data;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+  }
+
   async list(params: any = {}) {
     const res = await axios.get(BASE, {
       params,
@@ -20,7 +27,8 @@ export class EstadoServicioService {
         ...this.getAuthHeaders(),
       },
     });
-    return res.data;
+
+    return this.unwrapCollection(res);
   }
 
   /**
@@ -37,7 +45,8 @@ export class EstadoServicioService {
         ...this.getAuthHeaders(),
       },
     });
-    return res.data;
+
+    return this.unwrapCollection(res);
   }
 
   /**
@@ -56,11 +65,8 @@ export class EstadoServicioService {
       },
     });
 
-    if (Array.isArray(res.data) && res.data.length > 0) {
-      return res.data[0];
-    }
-
-    return null;
+    const items = this.unwrapCollection(res);
+    return items[0] || null;
   }
 
   /**
@@ -77,6 +83,8 @@ export class EstadoServicioService {
         },
       }
     );
+
+    // si quieres consistencia, puedes hacer return res.data.data;
     return res.data;
   }
 
@@ -94,6 +102,7 @@ export class EstadoServicioService {
         },
       }
     );
+
     return res.data;
   }
 

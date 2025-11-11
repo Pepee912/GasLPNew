@@ -11,7 +11,6 @@ export class ServiciosService {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  // Crear servicio
   async create(data: any) {
     const res = await axios.post(
       BASE,
@@ -21,7 +20,6 @@ export class ServiciosService {
     return res.data;
   }
 
-  // Servicios de hoy
   async getHoy() {
     const res = await axios.get(`${BASE}/hoy`, {
       headers: {
@@ -32,7 +30,6 @@ export class ServiciosService {
     return res.data;
   }
 
-  // ACTUALIZAR servicio 
   async update(documentId: string, data: any) {
     const res = await axios.put(
       `${BASE}/${documentId}`,
@@ -47,7 +44,6 @@ export class ServiciosService {
     return res.data;
   }
 
-  // servicios por ruta
   async getByRuta(rutaDocumentId: string) {
     const res = await axios.get(`${environment.apiUrl}/serviciosbyruta/${rutaDocumentId}`, {
       headers: {

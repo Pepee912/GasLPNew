@@ -1,16 +1,9 @@
 // backend/src/api/servicio/controllers/servicio.ts
 
-/**
- * servicio controller
- */
-
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::servicio.servicio', ({ strapi }) => ({
 
-  // ---------------------------------------------------------------------------
-  // Helpers de rol
-  // ---------------------------------------------------------------------------
   getRoleFlags(user: any) {
     const roleName = user?.role?.name?.toLowerCase() || '';
 
@@ -22,9 +15,6 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     };
   },
 
-  // ---------------------------------------------------------------------------
-  // GET /serviciosbyruta/:documentId
-  // ---------------------------------------------------------------------------
   async getServiciosByRuta(ctx) {
     const user = ctx.state?.user || null;
     const rutaDocumentId = ctx.params.documentId;
@@ -33,7 +23,6 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     let populate: any;
 
     if (!user) {
-      // Sin autenticación: solo filtra por ruta
       filters = {
         ruta: {
           documentId: { $eq: rutaDocumentId },
@@ -85,9 +74,6 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return servicios;
   },
 
-  // ---------------------------------------------------------------------------
-  // GET /servicios/hoy
-  // ---------------------------------------------------------------------------
   async getServiciosHoy(ctx) {
     const user = ctx.state?.user || null;
 
@@ -151,9 +137,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return serviciosHoy;
   },
 
-  // ---------------------------------------------------------------------------
-  // GET /servicios  (lista general)
-  // ---------------------------------------------------------------------------
+
   async find(ctx) {
     const user = ctx.state?.user;
 
@@ -195,9 +179,6 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return await super.find(ctx);
   },
 
-  // ---------------------------------------------------------------------------
-  // PUT /servicios/:id
-  // ---------------------------------------------------------------------------
   async update(ctx) {
     const user = ctx.state.user;
 
@@ -207,6 +188,17 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
 
     const { isOperador } = this.getRoleFlags(user);
     const documentId = ctx.params.id;
+    const bodyData = ctx.request.body?.data || {};
+
+    // Helper: normalizar estado_servicio a formato connect
+    const normalizeEstadoRelation = (raw: any) => {
+      if (!raw) return undefined;
+
+      // Permitimos enviar tanto id numérico como documentId string
+      return {
+        connect: [raw],
+      };
+    };
 
     if (isOperador) {
       // Verifica que el servicio realmente pertenece a su ruta
@@ -225,16 +217,42 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
           },
         });
 
-      console.log('Servicio a modificar', servicio);
+      console.log('Servicio a modificar por operador', servicio);
 
       if (!servicio) {
         return ctx.unauthorized('No tienes permiso para actualizar este servicio');
       }
 
-      // Restringe los campos que puede modificar el operador
-      ctx.request.body.data = {
-        estado_servicio: ctx.request.body.data.estado_servicio,
-      };
+      const dataToSave: any = {};
+
+      // El operador solo cambia estado_servicio y fechas relacionadas
+      if (bodyData.estado_servicio) {
+        const rel = normalizeEstadoRelation(bodyData.estado_servicio);
+        if (rel) dataToSave.estado_servicio = rel;
+      }
+
+      if (bodyData.fecha_surtido) {
+        dataToSave.fecha_surtido = bodyData.fecha_surtido;
+      }
+
+      if (bodyData.fecha_cancelado) {
+        dataToSave.fecha_cancelado = bodyData.fecha_cancelado;
+      }
+
+      ctx.request.body.data = dataToSave;
+    } else {
+      // Admin / Callcenter: pueden mandar más campos,
+      // pero normalizamos igual estado_servicio si viene
+      const newData: any = { ...bodyData };
+
+      if (bodyData.estado_servicio) {
+        const rel = normalizeEstadoRelation(bodyData.estado_servicio);
+        if (rel) {
+          newData.estado_servicio = rel;
+        }
+      }
+
+      ctx.request.body.data = newData;
     }
 
     const result = await super.update(ctx);
