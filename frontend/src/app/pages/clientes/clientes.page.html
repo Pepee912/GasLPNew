@@ -8,10 +8,23 @@
       <ion-button (click)="nuevoCliente()">Nuevo</ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Segmento Activos / Inactivos -->
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="segmentValue" (ionChange)="onSegmentChange()">
+      <ion-segment-button value="activos">
+        <ion-label>Activos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="inactivos">
+        <ion-label>Inactivos</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
 
+  <!-- Búsqueda por teléfono -->
   <ion-item>
     <ion-input
       label="Buscar por teléfono"
@@ -28,7 +41,7 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Mensaje cuando no hay teléfono y no hay clientes (caso raro) -->
+  <!-- Mensaje cuando no hay teléfono y no hay clientes -->
   <ion-item lines="none" *ngIf="!telefono && !clientes.length && !loading && !searching">
     <ion-label color="medium">
       <ion-icon name="search-outline" slot="start"></ion-icon>
@@ -46,7 +59,16 @@
             {{ c.attributes?.apellidos || c.apellidos }}
           </h2>
           <p>Tel: {{ c.attributes?.telefono || c.telefono }}</p>
-          <p>Estado: {{ (c.attributes?.estado ?? c.estado) ? 'Activo' : 'Inactivo' }}</p>
+
+          <p>
+            Estado:
+            {{
+              (c.attributes?.estado ?? c.estado)
+                ? 'Activo'
+                : 'Inactivo'
+            }}
+          </p>
+
           <small>
             ID: {{ c.id }} |
             docId: {{ c.documentId || c.attributes?.documentId || '—' }}
@@ -54,21 +76,46 @@
         </ion-label>
 
         <ion-buttons slot="end">
+
+          <!-- Botón agregar servicio: solo en activos -->
           <ion-button
+            *ngIf="segmentValue === 'activos'"
             color="primary"
             [routerLink]="['/callcenter/alta-rapida']"
             [state]="{ telefono: (c.attributes?.telefono || c.telefono) }">
             Agregar servicio
           </ion-button>
 
-          <ion-button color="medium" (click)="onEdit(c)">Editar</ion-button>
-          <ion-button color="danger" (click)="onDelete(c)">Eliminar</ion-button>
+          <!-- Editar: solo en activos -->
+          <ion-button
+            *ngIf="segmentValue === 'activos'"
+            color="medium"
+            (click)="onEdit(c)">
+            Editar
+          </ion-button>
+
+          <!-- Desactivar: solo en activos -->
+          <ion-button
+            *ngIf="segmentValue === 'activos'"
+            color="warning"
+            (click)="onDelete(c)">
+            Desactivar
+          </ion-button>
+
+          <!-- Reactivar: solo en inactivos -->
+          <ion-button
+            *ngIf="segmentValue === 'inactivos'"
+            color="success"
+            (click)="onReactivate(c)">
+            Reactivar
+          </ion-button>
+
         </ion-buttons>
 
       </ion-item>
     </ion-list>
 
-    <!-- Infinite scroll solo cuando NO hay filtro de teléfono -->
+    <!-- Infinite scroll -->
     <ion-infinite-scroll
       *ngIf="!telefono && (page * pageSize) < total"
       threshold="100px"
@@ -91,7 +138,9 @@
 
   <ng-template #noData>
     <ion-item lines="none">
-      <ion-label color="medium">Sin clientes para mostrar.</ion-label>
+      <ion-label color="medium">
+        Sin clientes para mostrar en esta vista.
+      </ion-label>
     </ion-item>
   </ng-template>
 

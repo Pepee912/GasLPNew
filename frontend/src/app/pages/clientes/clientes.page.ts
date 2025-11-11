@@ -1,4 +1,3 @@
-// src/app/pages/clientes/clientes.page.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
@@ -11,24 +10,31 @@ import { ClientesService } from 'src/app/services/clientes';
   standalone: false,
 })
 export class ClientesPage implements OnInit {
-  
+
   clientes: any[] = [];
-  loading = false;       
-  searching = false;     
+  loading = false;
+  searching = false;
   telefono = '';
 
   page = 1;
   pageSize = 20;
   total = 0;
 
-  private searchTimeout: any; 
+  private searchTimeout: any;
+
+  // Segmento: activos / inactivos
+  segmentValue: 'activos' | 'inactivos' = 'activos';
 
   constructor(
-    private clientesSrv: ClientesService, 
+    private clientesSrv: ClientesService,
     private alertCtrl: AlertController,
     private toast: ToastController,
     private router: Router
   ) {}
+
+  get mostrarInactivos(): boolean {
+    return this.segmentValue === 'inactivos';
+  }
 
   async ngOnInit() {
     await this.load();
@@ -38,15 +44,24 @@ export class ClientesPage implements OnInit {
     await this.load();
   }
 
+  async onSegmentChange() {
+    this.page = 1;
+    this.telefono = '';
+    await this.load();
+  }
+
   async load(event?: any, append: boolean = false) {
     if (!event) {
       this.loading = true;
     }
 
     try {
+      const estadoFiltro = this.mostrarInactivos ? false : true;
+
       const res = await this.clientesSrv.list({
         'pagination[page]': this.page,
         'pagination[pageSize]': this.pageSize,
+        'filters[estado][$eq]': estadoFiltro,
         'populate[domicilios]': 'true',
         'populate[servicios]': 'true',
         'sort[0]': 'id:desc'
@@ -81,9 +96,12 @@ export class ClientesPage implements OnInit {
   }
 
   private async preguntarCrearCliente(tel: string) {
+    // Solo tiene sentido en vista de activos
+    if (this.mostrarInactivos) return;
+
     const alert = await this.alertCtrl.create({
       header: 'Cliente no encontrado',
-      message: `No se encontró ningún cliente con el teléfono ${tel}. ¿Deseas registrar uno nuevo?`,
+      message: `No se encontró ningún cliente activo con el teléfono ${tel}. ¿Deseas registrar uno nuevo?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -125,10 +143,13 @@ export class ClientesPage implements OnInit {
   private async buscarEnVivo(tel: string) {
     this.searching = true;
     try {
+      const estadoFiltro = this.mostrarInactivos ? false : true;
+
       const res = await this.clientesSrv.list({
         'filters[telefono][$containsi]': tel,
+        'filters[estado][$eq]': estadoFiltro,
         'pagination[page]': 1,
-        'pagination[pageSize]': 100, 
+        'pagination[pageSize]': 100,
         'populate[domicilios]': 'true',
         'populate[servicios]': 'true',
         'sort[0]': 'telefono:asc'
@@ -170,9 +191,18 @@ export class ClientesPage implements OnInit {
         ? (res as any).data
         : res;
 
-      this.clientes = payload
+      let lista = payload
         ? (Array.isArray(payload) ? payload : [payload])
         : [];
+
+      // Filtrar según el segmento actual (activos/inactivos)
+      const estadoDeseado = this.mostrarInactivos ? false : true;
+      lista = lista.filter(c => {
+        const attrs = (c as any).attributes || c;
+        return attrs.estado === estadoDeseado;
+      });
+
+      this.clientes = lista;
       this.total = this.clientes.length;
 
       if (!this.total) {
@@ -205,7 +235,7 @@ export class ClientesPage implements OnInit {
     this.load();
   }
 
-  // ========== INFINITE SCROLL (solo sin filtro de teléfono) ==========
+  // ========== INFINITE SCROLL ==========
 
   async loadMore(event: any) {
     if (this.page * this.pageSize >= this.total) {
@@ -231,36 +261,39 @@ export class ClientesPage implements OnInit {
     this.router.navigate(['/clientes/editar', documentId]);
   }
 
+  // Desactivar (soft delete)
   async onDelete(item: any) {
     const documentId = item?.documentId ?? item?.attributes?.documentId;
     if (!documentId) {
-      console.warn('Sin documentId, no se puede eliminar:', item);
+      console.warn('Sin documentId, no se puede desactivar:', item);
       return;
     }
 
     const alert = await this.alertCtrl.create({
-      header: 'Eliminar cliente',
-      message: '¿Seguro que deseas eliminar este cliente?',
+      header: 'Desactivar cliente',
+      message: 'El cliente y sus domicilios quedarán inactivos. Los servicios se conservarán como historial. ¿Deseas continuar?',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: 'Desactivar',
           role: 'destructive',
           handler: async () => {
             try {
-              await this.clientesSrv.delete(documentId);
+              await this.clientesSrv.deactivate(documentId);
+
               const t = await this.toast.create({
-                message: 'Cliente eliminado',
+                message: 'Cliente desactivado',
                 duration: 1200,
                 color: 'success'
               });
               await t.present();
+
               this.page = 1;
               await this.load();
             } catch (err: any) {
-              console.error('Error al eliminar:', err?.response?.data || err);
+              console.error('Error al desactivar:', err?.response?.data || err);
               const t = await this.toast.create({
-                message: 'No se pudo eliminar',
+                message: 'No se pudo desactivar el cliente',
                 duration: 1500,
                 color: 'danger'
               });
@@ -272,5 +305,36 @@ export class ClientesPage implements OnInit {
       mode: 'ios'
     });
     await alert.present();
+  }
+
+  // Reactivar cliente (desde pestaña de inactivos)
+  async onReactivate(item: any) {
+    const documentId = item?.documentId ?? item?.attributes?.documentId;
+    if (!documentId) {
+      console.warn('Sin documentId, no se puede reactivar:', item);
+      return;
+    }
+
+    try {
+      await this.clientesSrv.reactivate(documentId);
+
+      const t = await this.toast.create({
+        message: 'Cliente reactivado',
+        duration: 1200,
+        color: 'success'
+      });
+      await t.present();
+
+      this.page = 1;
+      await this.load();
+    } catch (err: any) {
+      console.error('Error al reactivar:', err?.response?.data || err);
+      const t = await this.toast.create({
+        message: 'No se pudo reactivar el cliente',
+        duration: 1500,
+        color: 'danger'
+      });
+      await t.present();
+    }
   }
 }

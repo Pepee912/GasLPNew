@@ -55,7 +55,6 @@ export class DomiciliosService {
     return res.data; // { data: [...], meta: {...} }
   }
 
-  // 👇 NUEVO: actualizar domicilio (por id o documentId según cómo tengas tu endpoint)
   async update(idOrDocumentId: string | number, data: any) {
     const res = await axios.put(
       `${BASE}/${idOrDocumentId}`,

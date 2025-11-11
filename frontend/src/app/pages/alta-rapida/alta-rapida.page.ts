@@ -1,4 +1,3 @@
-// src/app/pages/alta-rapida/alta-rapida.page.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { AlertController, ToastController, NavController } from '@ionic/angular';
@@ -23,20 +22,16 @@ type DomicilioLite = AnyEntity;
 export class AltaRapidaPage implements OnInit {
   submitting = false;
 
-  // Estado de búsqueda/selección
   clienteExistente: ClienteLite | null = null;
   domiciliosExistentes: DomicilioLite[] = [];
 
-  // Por defecto: DOMICILIO NUEVO
   usarDomicilioExistente = false;
   domicilioElegidoDocumentId: string | number | null = null;
 
-  // Catálogos
   tipoServicios: AnyEntity[] = [];
   rutas: AnyEntity[] = [];
   loadingCatalogos = false;
 
-  // Formularios reactivos
   fCliente = this.fb.group({
     telefono: [''],
     nombre: [''],
@@ -53,7 +48,6 @@ export class AltaRapidaPage implements OnInit {
     activo: [true],
   });
 
-  // Servicio opcional (sin nota)
   fSrv = this.fb.group({
     tipo_servicio: [null],
     ruta: [null],
@@ -73,19 +67,13 @@ export class AltaRapidaPage implements OnInit {
     private nav: NavController,
     private router: Router,
   ) {
-    // Desactivamos selects de servicio al inicio.
-    // Se habilitan al cargar catálogos si hay datos.
     this.fSrv.get('tipo_servicio')?.disable({ emitEvent: false });
     this.fSrv.get('ruta')?.disable({ emitEvent: false });
   }
 
   async ngOnInit() {
-    // Cargar catálogos (tipos de servicio, rutas)
     await this.cargarCatalogos();
 
-    // Leer teléfono desde:
-    // - Agregar servicio (cliente existente)
-    // - Búsqueda sin resultados (alta nueva con teléfono ya puesto)
     const state = history.state as { telefono?: string } | undefined;
     const telFromState = this.sanitizePhone(state?.telefono || '');
 
@@ -93,7 +81,6 @@ export class AltaRapidaPage implements OnInit {
       this.fCliente.patchValue({ telefono: telFromState });
       await this.buscarClientePorTelefono();
     } else {
-      // Si entro por "Nuevo" sin estado, aseguro DOMICILIO NUEVO
       this.usarDomicilioExistente = false;
     }
   }
@@ -112,10 +99,21 @@ export class AltaRapidaPage implements OnInit {
   }
 
   private async alertCtrl(title: string, err: any) {
-    const message =
+    let message =
       err?.response?.data?.error?.message ||
       err?.message ||
       'Ocurrió un error inesperado.';
+
+    const lower = (message || '').toLowerCase();
+    if (
+      lower.includes('teléfono') ||
+      lower.includes('telefono') ||
+      lower.includes('unique') ||
+      lower.includes('ya existe un cliente con ese número')
+    ) {
+      message = 'Ya existe un cliente con ese número telefónico.';
+    }
+
     const a = await this.alert.create({
       header: title,
       message,
@@ -125,13 +123,11 @@ export class AltaRapidaPage implements OnInit {
     await a.present();
   }
 
-  /** Aplana objeto Strapi */
   private flat<T = any>(item: any): T {
     if (!item) return item;
     return { ...item, ...(item.attributes || {}) };
   }
 
-  /** Obtiene documentId o id */
   private docIdOf(o: any): string | number | null {
     if (!o) return null;
     const x: any = this.flat(o);
@@ -157,7 +153,6 @@ export class AltaRapidaPage implements OnInit {
     const tipoCtrl = this.fSrv.get('tipo_servicio');
     const rutaCtrl = this.fSrv.get('ruta');
 
-    // Mientras carga, deshabilitados
     tipoCtrl?.disable({ emitEvent: false });
     rutaCtrl?.disable({ emitEvent: false });
 
@@ -173,7 +168,6 @@ export class AltaRapidaPage implements OnInit {
       this.tipoServicios = ts.map((x: any) => this.flat(x));
       this.rutas = rt.map((x: any) => this.flat(x));
 
-      // Habilitar o dejar deshabilitados según haya datos
       if (this.tipoServicios.length) {
         tipoCtrl?.enable({ emitEvent: false });
       } else {
@@ -190,7 +184,6 @@ export class AltaRapidaPage implements OnInit {
       this.tipoServicios = [];
       this.rutas = [];
 
-      // En error, se quedan deshabilitados
       tipoCtrl?.disable({ emitEvent: false });
       rutaCtrl?.disable({ emitEvent: false });
     } finally {
@@ -245,7 +238,6 @@ export class AltaRapidaPage implements OnInit {
         this.usarDomicilioExistente = false;
       }
     } catch {
-      // Si falla (404, etc.), asumimos alta nueva
       this.clienteExistente = null;
       this.domiciliosExistentes = [];
       this.usarDomicilioExistente = false;
@@ -323,7 +315,7 @@ export class AltaRapidaPage implements OnInit {
 
       await this.msg(
         quiereServicio
-          ? 'Cliente, domicilio y servicio guardados correctamente'
+          ? 'Datos guardados correctamente'
           : 'Cliente y domicilio guardados (sin servicio)',
         'success'
       );

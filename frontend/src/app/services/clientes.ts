@@ -1,13 +1,17 @@
-// src/app/services/clientes.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { environment } from 'src/environments/environment';
+import { DomiciliosService } from './domicilios';
 
 const BASE = `${environment.apiUrl}/clientes`;
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
-  
+
+  constructor(
+    private domiciliosSrv: DomiciliosService
+  ) {}
+
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -58,4 +62,39 @@ export class ClientesService {
     return res.data;
   }
 
+  // 🔻 SOFT DELETE: desactivar cliente + domicilios
+  async deactivate(documentId: string) {
+    // 1) Desactivar cliente
+    await this.update(documentId, { estado: false });
+
+    // 2) Desactivar domicilios asociados
+    const domRes = await this.domiciliosSrv.listByCliente(documentId);
+    const domList = domRes?.data ?? [];
+
+    for (const d of domList) {
+      const flat = { ...d, ...(d.attributes || {}) };
+      const domDocId = flat.documentId || flat.id;
+      if (domDocId) {
+        await this.domiciliosSrv.update(domDocId, { estado: false });
+      }
+    }
+  }
+
+  // 🔺 REACTIVAR cliente + domicilios
+  async reactivate(documentId: string) {
+    // 1) Reactivar cliente
+    await this.update(documentId, { estado: true });
+
+    // 2) Reactivar domicilios asociados
+    const domRes = await this.domiciliosSrv.listByCliente(documentId);
+    const domList = domRes?.data ?? [];
+
+    for (const d of domList) {
+      const flat = { ...d, ...(d.attributes || {}) };
+      const domDocId = flat.documentId || flat.id;
+      if (domDocId) {
+        await this.domiciliosSrv.update(domDocId, { estado: true });
+      }
+    }
+  }
 }
