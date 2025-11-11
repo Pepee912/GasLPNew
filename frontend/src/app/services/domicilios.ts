@@ -18,11 +18,10 @@ export class DomiciliosService {
       { data },
       { headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() } }
     );
-    return res.data; 
+    return res.data;
   }
 
   async listByCliente(cliente: any | string | number) {
-
     let value: string | number | undefined;
     let field: 'id' | 'documentId' = 'documentId';
 
@@ -31,14 +30,13 @@ export class DomiciliosService {
 
       if (flat.documentId) {
         value = flat.documentId;
-        field = 'documentId';     
+        field = 'documentId';
       } else {
         value = flat.id;
-        field = 'id';            
+        field = 'id';
       }
     } else {
       value = cliente as string | number;
-
       field = 'documentId';
     }
 
@@ -54,7 +52,16 @@ export class DomiciliosService {
       headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
     });
 
-    // Strapi responde { data: [...], meta: {...} }
+    return res.data; // { data: [...], meta: {...} }
+  }
+
+  // 👇 NUEVO: actualizar domicilio (por id o documentId según cómo tengas tu endpoint)
+  async update(idOrDocumentId: string | number, data: any) {
+    const res = await axios.put(
+      `${BASE}/${idOrDocumentId}`,
+      { data },
+      { headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() } }
+    );
     return res.data;
   }
 }

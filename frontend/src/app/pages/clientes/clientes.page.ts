@@ -18,7 +18,7 @@ export class ClientesPage implements OnInit {
   telefono = '';
 
   page = 1;
-  pageSize = 20;         // cuantos clientes por “página” en el listado general
+  pageSize = 20;
   total = 0;
 
   private searchTimeout: any; 
@@ -37,7 +37,6 @@ export class ClientesPage implements OnInit {
   async ionViewWillEnter() {
     await this.load();
   }
-
 
   async load(event?: any, append: boolean = false) {
     if (!event) {
