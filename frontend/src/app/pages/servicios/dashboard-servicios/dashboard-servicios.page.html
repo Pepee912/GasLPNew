@@ -1,13 +1,117 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>dashboard-servicios</ion-title>
+    <ion-title>Servicios de hoy</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="loadServiciosHoy($event)">
+    <ion-refresher-content
+      pullingText="Desliza para actualizar"
+      refreshingSpinner="circles">
+    </ion-refresher-content>
+  </ion-refresher>
+
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">dashboard-servicios</ion-title>
+      <ion-title size="large">Servicios de hoy</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Cargando -->
+  <ng-container *ngIf="loading">
+    <ion-list>
+      <ion-item *ngFor="let item of [1,2,3,4]">
+        <ion-label>
+          <h2>
+            <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+          </h2>
+          <p>
+            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+          </p>
+          <p>
+            <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+          </p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <!-- Error -->
+  <ng-container *ngIf="!loading && errorMessage">
+    <ion-text color="danger" class="ion-padding">
+      <p>{{ errorMessage }}</p>
+    </ion-text>
+  </ng-container>
+
+  <!-- Sin servicios -->
+  <ng-container *ngIf="!loading && !errorMessage && servicios.length === 0">
+    <ion-item lines="none">
+      <ion-label class="ion-text-center ion-padding">
+        <h2>No hay servicios programados para hoy.</h2>
+        <p>Cuando se registren servicios para la fecha actual aparecerán aquí.</p>
+      </ion-label>
+    </ion-item>
+  </ng-container>
+
+  <!-- Lista de servicios -->
+  <ion-list *ngIf="!loading && !errorMessage && servicios.length > 0">
+    <ion-item *ngFor="let servicio of servicios" lines="inset">
+      <ion-label>
+        <h2>{{ getNombreCliente(servicio) }}</h2>
+
+        <p>
+          <strong>Dirección:</strong>
+          {{ getDireccion(servicio) }}
+        </p>
+
+        <p>
+          <strong>Tipo de servicio:</strong>
+          {{ getTipoServicio(servicio) }}
+        </p>
+
+        <p>
+          <strong>Hora programada:</strong>
+          {{ getHoraProgramado(servicio) }}
+        </p>
+
+        <p>
+          <strong>Estado actual:</strong>
+          {{ getEstadoNombre(servicio) }}
+        </p>
+
+        <!-- Selector de estado -->
+        <div class="estado-select">
+          <ion-item lines="none">
+            <ion-label>Actualizar estado</ion-label>
+            <ion-select
+              interface="popover"
+              [value]="getEstadoSeleccionado(servicio)"
+              (ionChange)="onEstadoChange(servicio, $event)"
+              [disabled]="updatingId === (servicio.documentId || servicio.id)">
+              <ion-select-option
+                *ngFor="let estado of estados"
+                [value]="estado.documentId || estado.id">
+                {{ estado.tipo }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+      </ion-label>
+
+      <!-- Badge con el estado -->
+      <ion-badge slot="end">
+        {{ getEstadoNombre(servicio) }}
+      </ion-badge>
+
+      <!-- Spinner pequeño mientras se actualiza ese servicio -->
+      <ion-spinner
+        *ngIf="updatingId === (servicio.documentId || servicio.id)"
+        slot="end">
+      </ion-spinner>
+    </ion-item>
+  </ion-list>
+
 </ion-content>

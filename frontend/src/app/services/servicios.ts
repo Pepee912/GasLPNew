@@ -1,4 +1,3 @@
-// src/app/services/servicios.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { environment } from 'src/environments/environment';
@@ -12,12 +11,50 @@ export class ServiciosService {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
+  // Crear servicio
   async create(data: any) {
     const res = await axios.post(
       BASE,
       { data },
       { headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() } }
     );
+    return res.data;
+  }
+
+  // Servicios de hoy
+  async getHoy() {
+    const res = await axios.get(`${BASE}/hoy`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+    return res.data;
+  }
+
+  // ACTUALIZAR servicio 
+  async update(documentId: string, data: any) {
+    const res = await axios.put(
+      `${BASE}/${documentId}`,
+      { data },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders(),
+        },
+      }
+    );
+    return res.data;
+  }
+
+  // servicios por ruta
+  async getByRuta(rutaDocumentId: string) {
+    const res = await axios.get(`${environment.apiUrl}/serviciosbyruta/${rutaDocumentId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
     return res.data;
   }
 }
