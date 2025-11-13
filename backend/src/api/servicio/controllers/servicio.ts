@@ -137,7 +137,6 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return serviciosHoy;
   },
 
-
   async find(ctx) {
     const user = ctx.state?.user;
 
@@ -177,6 +176,31 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     }
 
     return await super.find(ctx);
+  },
+
+  // normalizar estado_servicio al crear
+  async create(ctx) {
+    const user = ctx.state?.user || null;
+    const bodyData = ctx.request.body?.data || {};
+    const newData: any = { ...bodyData };
+
+    const { isOperador } = user ? this.getRoleFlags(user) : { isOperador: false };
+
+    if (bodyData.estado_servicio) {
+      // Operador no debería fijar el estado al crear
+      if (isOperador) {
+        delete newData.estado_servicio;
+      } else {
+        newData.estado_servicio = {
+          connect: [bodyData.estado_servicio], 
+        };
+      }
+    }
+
+    ctx.request.body.data = newData;
+
+    const result = await super.create(ctx);
+    return result;
   },
 
   async update(ctx) {

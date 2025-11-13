@@ -1,3 +1,5 @@
+// src/app/pages/alta-rapida/alta-rapida.page.ts
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { AlertController, ToastController, NavController } from '@ionic/angular';
@@ -8,6 +10,7 @@ import { DomiciliosService } from 'src/app/services/domicilios';
 import { ServiciosService } from 'src/app/services/servicios';
 import { TipoServiciosService } from 'src/app/services/tipo-servicios';
 import { RutasService } from 'src/app/services/rutas';
+import { EstadoServicioService } from 'src/app/services/estado-servicio'; // 👈 NUEVO
 
 type AnyEntity = any;
 type ClienteLite = AnyEntity;
@@ -62,6 +65,7 @@ export class AltaRapidaPage implements OnInit {
     private serviciosSrv: ServiciosService,
     private tipoSrv: TipoServiciosService,
     private rutasSrv: RutasService,
+    private estadoSrv: EstadoServicioService,      // 👈 NUEVO
     private toast: ToastController,
     private alert: AlertController,
     private nav: NavController,
@@ -142,6 +146,22 @@ export class AltaRapidaPage implements OnInit {
       if (isNaN(d.getTime())) return null;
       return d.toISOString();
     } catch {
+      return null;
+    }
+  }
+
+  // 👇 NUEVO: decide el estado inicial según si tiene ruta o no
+  private async getEstadoInicial(rutaId: any): Promise<any | null> {
+    const tipo = rutaId ? 'Asignado' : 'Programado'; // regla de negocio
+    try {
+      const raw = await this.estadoSrv.getByTipo(tipo);
+      if (!raw) {
+        console.warn(`No se encontró estado_servicio con tipo "${tipo}"`);
+        return null;
+      }
+      return this.flat(raw);
+    } catch (e) {
+      console.error('Error obteniendo estado_inicial', e);
       return null;
     }
   }
@@ -301,14 +321,24 @@ export class AltaRapidaPage implements OnInit {
 
       // 3) Servicio solo si se indicó tipo_servicio
       if (quiereServicio) {
+        // 👉 Estado inicial: Programado o Asignado según haya ruta o no
+        const rutaRef = srvValues.ruta || null;
+        const estadoInicial = await this.getEstadoInicial(rutaRef);
+        const estadoRef = estadoInicial ? this.docIdOf(estadoInicial) : null;
+
         const srvPayload: AnyEntity = {
           cliente: clienteRef,
           domicilio: domicilioRef,
           tipo_servicio: srvValues.tipo_servicio,
-          ruta: srvValues.ruta || null,
+          ruta: rutaRef,
           observacion: srvValues.observacion || '',
           fecha_programado: this.toISO(srvValues.fecha_programado),
         };
+
+        // Solo lo mandamos si encontramos estado_servicio válido
+        if (estadoRef) {
+          (srvPayload as any).estado_servicio = estadoRef;
+        }
 
         await this.serviciosSrv.create(srvPayload);
       }
