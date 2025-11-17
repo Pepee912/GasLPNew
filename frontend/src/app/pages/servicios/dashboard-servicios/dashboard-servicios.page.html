@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Servicios</ion-title>
-  
+
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
@@ -23,7 +23,9 @@
 <ion-content [fullscreen]="true">
 
   <!-- Refresher (respeta vista actual) -->
-  <ion-refresher slot="fixed" (ionRefresh)="vista === 'hoy' ? loadServiciosHoy($event) : loadServiciosTodos($event)">
+  <ion-refresher
+    slot="fixed"
+    (ionRefresh)="vista === 'hoy' ? loadServiciosHoy($event) : loadServiciosTodos($event)">
     <ion-refresher-content
       pullingText="Desliza para actualizar"
       refreshingSpinner="circles">
@@ -43,7 +45,9 @@
 
     <ion-searchbar
       [(ngModel)]="searchTerm"
-      placeholder="Buscar por cliente, teléfono o dirección"
+      [placeholder]="isOperador
+        ? 'Buscar por dirección o tipo de servicio'
+        : 'Buscar por cliente, teléfono o dirección'"
       debounce="400">
     </ion-searchbar>
 
@@ -117,7 +121,8 @@
     <ion-item *ngFor="let servicio of serviciosFiltrados" lines="inset">
 
       <ion-label>
-        <h2>{{ getNombreCliente(servicio) }}</h2>
+        <!-- Título: cliente para admin/callcenter, tipo para operador -->
+        <h2>{{ getTituloServicio(servicio) }}</h2>
 
         <p>
           <strong>Dirección:</strong>
@@ -139,6 +144,12 @@
           {{ getEstadoNombre(servicio) }}
         </p>
 
+        <!-- Nota del operador (si existe) -->
+        <p *ngIf="servicio.nota_operador">
+          <strong>Nota del operador:</strong>
+          {{ servicio.nota_operador }}
+        </p>
+
         <!-- ================= Selector de estado ================= -->
         <div class="estado-select">
           <ion-item lines="none">
@@ -150,7 +161,7 @@
               (ionChange)="onEstadoChange(servicio, $event)"
               [disabled]="updatingId === (servicio.documentId || servicio.id)">
 
-              <!-- 🔥 Cambia según rol (operador solo ve Surtido) -->
+              <!-- Cambia según rol (operador solo ve Surtido) -->
               <ion-select-option
                 *ngFor="let estado of estadosParaSelect"
                 [value]="estado.documentId || estado.id">

@@ -52,6 +52,9 @@
       "relation": "oneToOne",
       "target": "api::estado-servicio.estado-servicio",
       "inversedBy": "servicio"
+    },
+    "nota_operador": {
+      "type": "string"
     }
   }
 }

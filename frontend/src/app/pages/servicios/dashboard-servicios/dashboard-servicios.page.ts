@@ -1,6 +1,5 @@
-// src/app/pages/dashboard-servicios/dashboard-servicios.page.ts
 import { Component, OnInit } from '@angular/core';
-import { ToastController } from '@ionic/angular';
+import { ToastController, AlertController } from '@ionic/angular';
 import { ServiciosService } from 'src/app/services/servicios';
 import { EstadoServicioService } from 'src/app/services/estado-servicio';
 
@@ -25,14 +24,15 @@ export class DashboardServiciosPage implements OnInit {
   filtroEstado: string = 'todos';
   searchTerm: string = '';
 
-  // 👉 NUEVO: info de rol
+  // Info de rol
   roleName: string | null = null;
   isOperador = false;
 
   constructor(
     private serviciosService: ServiciosService,
     private estadoServicioService: EstadoServicioService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) {}
 
   async ngOnInit() {
@@ -93,7 +93,7 @@ export class DashboardServiciosPage implements OnInit {
     }
   }
 
-  // 👉 NUEVO: estados que aparecen en el <ion-select> según rol
+  // Estados que aparecen en el <ion-select> según rol
   get estadosParaSelect(): any[] {
     if (this.isOperador) {
       // Solo puede marcar Surtido
@@ -169,11 +169,27 @@ export class DashboardServiciosPage implements OnInit {
     this.searchTerm = '';
   }
 
-  // ==================== Helpers ====================
+  // ==================== Helpers de lectura ====================
+
+  /** Nombre de cliente (oculto para operador) */
   getNombreCliente(servicio: any): string {
+    if (this.isOperador) {
+      // El operador no debe ver datos del cliente
+      return 'Cliente';
+    }
+
     return servicio?.cliente
       ? `${servicio.cliente.nombre || ''} ${servicio.cliente.apellidos || ''}`.trim()
       : 'Sin cliente';
+  }
+
+  /** Título principal de la tarjeta */
+  getTituloServicio(servicio: any): string {
+    if (this.isOperador) {
+      const tipo = this.getTipoServicio(servicio);
+      return tipo !== 'Sin tipo' ? tipo : 'Servicio de gas';
+    }
+    return this.getNombreCliente(servicio);
   }
 
   getDireccion(servicio: any): string {
@@ -237,25 +253,74 @@ export class DashboardServiciosPage implements OnInit {
   get serviciosFiltrados(): any[] {
     let lista = this.servicios || [];
 
+    // Filtro por estado
     if (this.filtroEstado !== 'todos') {
       lista = lista.filter(s => this.getEstadoNombre(s) === this.filtroEstado);
     }
 
+    // Búsqueda por texto
     const term = (this.searchTerm || '').trim().toLowerCase();
     if (term) {
       lista = lista.filter(s => {
+        const dir = this.getDireccion(s).toLowerCase();
+        const tipo = this.getTipoServicio(s).toLowerCase();
+
+        if (this.isOperador) {
+          // Operador: solo busca por dirección y tipo de servicio
+          return dir.includes(term) || tipo.includes(term);
+        }
+
+        // Admin / Callcenter: también por cliente y teléfono
         const nombre = this.getNombreCliente(s).toLowerCase();
         const tel = (s.cliente?.telefono || '').toString().toLowerCase();
-        const dir = this.getDireccion(s).toLowerCase();
+
         return (
           nombre.includes(term) ||
           tel.includes(term) ||
-          dir.includes(term)
+          dir.includes(term) ||
+          tipo.includes(term)
         );
       });
     }
 
     return lista;
+  }
+
+  // ==================== Nota del operador ====================
+  private async pedirNotaSurtido(): Promise<string | null> {
+    const alert = await this.alertCtrl.create({
+      header: 'Nota del operador',
+      message: '¿Deseas agregar una nota sobre la entrega? (opcional)',
+      inputs: [
+        {
+          name: 'nota',
+          type: 'textarea',
+          placeholder: 'Ej. Cliente no estaba en casa, tanque dañado, etc.',
+        },
+      ],
+      buttons: [
+        {
+          text: 'Omitir',
+          role: 'cancel',
+        },
+        {
+          text: 'Guardar',
+          role: 'confirm',
+        },
+      ],
+      mode: 'ios',
+    });
+
+    await alert.present();
+    const result = await alert.onDidDismiss();
+
+    if (result.role === 'confirm') {
+      const nota = result.data?.values?.nota ?? '';
+      const trimmed = (nota || '').trim();
+      return trimmed || null;
+    }
+
+    return null;
   }
 
   // ==================== Cambio de estado ====================
@@ -281,11 +346,25 @@ export class DashboardServiciosPage implements OnInit {
     this.updatingId = servicioId;
 
     try {
-      await this.serviciosService.update(servicioId, {
+      const payload: any = {
         estado_servicio: estadoKey,
-      });
+      };
 
+      // Si es operador y marca Surtido → pedir nota_operador (opcional)
+      if (this.isOperador && nuevoEstado.tipo === 'Surtido') {
+        const nota = await this.pedirNotaSurtido();
+        if (nota) {
+          payload.nota_operador = nota;
+        }
+      }
+
+      await this.serviciosService.update(servicioId, payload);
+
+      // Actualizamos en memoria
       servicio.estado_servicio = nuevoEstado;
+      if (payload.nota_operador) {
+        servicio.nota_operador = payload.nota_operador;
+      }
 
       const toast = await this.toastCtrl.create({
         message: `Estado actualizado a "${nuevoEstado.tipo}"`,

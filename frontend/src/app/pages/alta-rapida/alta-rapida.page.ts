@@ -150,11 +150,11 @@ export class AltaRapidaPage implements OnInit {
 
   // Decide el estado inicial según si tiene ruta o no
   private async getEstadoInicial(rutaId: any): Promise<any | null> {
-    const tipo = rutaId ? 'Asignado' : 'Programado'; 
+    const tipo = rutaId ? 'Asignado' : 'Programado';
     try {
       const raw = await this.estadoSrv.getByTipo(tipo);
       if (!raw) {
-        console.warn(`No se encontró estado_servicio con tipo "${tipo}"`);
+        console.warn(`No se encontró estado_servicio activo con tipo "${tipo}"`);
         return null;
       }
       return this.flat(raw);
@@ -385,10 +385,22 @@ export class AltaRapidaPage implements OnInit {
           return;
         }
 
-        // Estado inicial: Programado o Asignado según haya ruta o no
         const rutaRef = srvValues.ruta || null;
+
+        // 👇 OBLIGAMOS a tener estado inicial, si no → NO se crea servicio
         const estadoInicial = await this.getEstadoInicial(rutaRef);
-        const estadoRef = estadoInicial ? this.docIdOf(estadoInicial) : null;
+        if (!estadoInicial) {
+          const tipoEsperado = rutaRef ? 'Asignado' : 'Programado';
+          await this.msg(
+            `No se encontró un estado de servicio "${tipoEsperado}" activo. ` +
+            'Contacta al administrador antes de crear servicios.',
+            'danger'
+          );
+          this.submitting = false;
+          return;
+        }
+
+        const estadoRef = this.docIdOf(estadoInicial);
 
         const srvPayload: AnyEntity = {
           cliente: clienteRef,

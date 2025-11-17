@@ -577,6 +577,7 @@ export interface ApiServicioServicio extends Struct.CollectionTypeSchema {
       'api::servicio.servicio'
     > &
       Schema.Attribute.Private;
+    nota_operador: Schema.Attribute.String;
     observacion: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
     ruta: Schema.Attribute.Relation<'manyToOne', 'api::ruta.ruta'>;
