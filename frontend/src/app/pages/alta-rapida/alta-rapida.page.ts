@@ -10,7 +10,7 @@ import { DomiciliosService } from 'src/app/services/domicilios';
 import { ServiciosService } from 'src/app/services/servicios';
 import { TipoServiciosService } from 'src/app/services/tipo-servicios';
 import { RutasService } from 'src/app/services/rutas';
-import { EstadoServicioService } from 'src/app/services/estado-servicio'; // 👈 NUEVO
+import { EstadoServicioService } from 'src/app/services/estado-servicio';
 
 type AnyEntity = any;
 type ClienteLite = AnyEntity;

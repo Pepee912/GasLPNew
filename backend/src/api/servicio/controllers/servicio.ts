@@ -1,9 +1,9 @@
 // backend/src/api/servicio/controllers/servicio.ts
-
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::servicio.servicio', ({ strapi }) => ({
 
+  // --------------------- Helpers de rol ---------------------
   getRoleFlags(user: any) {
     const roleName = user?.role?.name?.toLowerCase() || '';
 
@@ -15,6 +15,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     };
   },
 
+  // ===================== GET /serviciosbyruta/:documentId =====================
   async getServiciosByRuta(ctx) {
     const user = ctx.state?.user || null;
     const rutaDocumentId = ctx.params.documentId;
@@ -33,7 +34,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
       const { isOperador } = this.getRoleFlags(user);
 
       if (isOperador) {
-        // Operador: mismos filtros por ruta + que la ruta sea del operador
+        // Operador: solo servicios de ESA ruta y que la ruta sea del operador
         filters = {
           ruta: {
             documentId: { $eq: rutaDocumentId },
@@ -74,6 +75,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return servicios;
   },
 
+  // ===================== GET /servicios/hoy =====================
   async getServiciosHoy(ctx) {
     const user = ctx.state?.user || null;
 
@@ -137,17 +139,19 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return serviciosHoy;
   },
 
+  // ===================== GET /servicios (listado general) =====================
   async find(ctx) {
     const user = ctx.state?.user;
 
     if (!user) {
+      // invitado (raro, pero por si acaso)
       return await super.find(ctx);
     }
 
     const { isOperador } = this.getRoleFlags(user);
 
     if (isOperador) {
-      // Operador: solo sus servicios (de cualquier día)
+      // Operador: solo servicios de su ruta (cualquier día)
       ctx.query = {
         ...ctx.query,
         populate: {
@@ -168,7 +172,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
         },
       };
     } else {
-      // Admin / Callcenter
+      // Admin / Callcenter: todo con populate completo
       ctx.query = {
         ...ctx.query,
         populate: '*',
@@ -178,7 +182,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return await super.find(ctx);
   },
 
-  // normalizar estado_servicio al crear
+  // ===================== POST /servicios =====================
   async create(ctx) {
     const user = ctx.state?.user || null;
     const bodyData = ctx.request.body?.data || {};
@@ -186,13 +190,14 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
 
     const { isOperador } = user ? this.getRoleFlags(user) : { isOperador: false };
 
+    // Normalizar estado_servicio al crear
     if (bodyData.estado_servicio) {
-      // Operador no debería fijar el estado al crear
       if (isOperador) {
+        // Operador NO define estado al crear
         delete newData.estado_servicio;
       } else {
         newData.estado_servicio = {
-          connect: [bodyData.estado_servicio], 
+          connect: [bodyData.estado_servicio],
         };
       }
     }
@@ -203,6 +208,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return result;
   },
 
+  // ===================== PUT /servicios/:id =====================
   async update(ctx) {
     const user = ctx.state.user;
 
@@ -214,18 +220,48 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     const documentId = ctx.params.id;
     const bodyData = ctx.request.body?.data || {};
 
-    // Helper: normalizar estado_servicio a formato connect
+    // Helper: normalizar relación estado_servicio
     const normalizeEstadoRelation = (raw: any) => {
       if (!raw) return undefined;
-
-      // Permitimos enviar tanto id numérico como documentId string
       return {
-        connect: [raw],
+        connect: [raw], // puede ser id numérico o documentId string
       };
     };
 
+    // ---------------------------------------
+    // 1) Si viene un nuevo estado_servicio, lo buscamos y validamos
+    // ---------------------------------------
+    let nuevoEstado: any | null = null;
+    const nuevoEstadoRaw = bodyData.estado_servicio;
+
+    if (nuevoEstadoRaw) {
+      const filters: any = {};
+
+      // Si es número → id, si no → documentId
+      if (!isNaN(Number(nuevoEstadoRaw))) {
+        filters.id = { $eq: Number(nuevoEstadoRaw) };
+      } else {
+        filters.documentId = { $eq: nuevoEstadoRaw };
+      }
+
+      nuevoEstado = await strapi
+        .documents('api::estado-servicio.estado-servicio')
+        .findFirst({ filters });
+
+      if (!nuevoEstado) {
+        return ctx.badRequest('Estado de servicio inválido');
+      }
+
+      // Si es operador, solo puede marcar Surtido
+      if (isOperador && nuevoEstado.tipo !== 'Surtido') {
+        return ctx.forbidden('Solo puedes marcar el servicio como "Surtido".');
+      }
+    }
+
     if (isOperador) {
-      // Verifica que el servicio realmente pertenece a su ruta
+      // ---------------------------------------
+      // Operador: solo sus servicios y solo Surtido
+      // ---------------------------------------
       const servicio = await strapi
         .documents('api::servicio.servicio')
         .findOne({
@@ -241,38 +277,49 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
           },
         });
 
-      console.log('Servicio a modificar por operador', servicio);
-
       if (!servicio) {
         return ctx.unauthorized('No tienes permiso para actualizar este servicio');
       }
 
       const dataToSave: any = {};
 
-      // El operador solo cambia estado_servicio y fechas relacionadas
-      if (bodyData.estado_servicio) {
-        const rel = normalizeEstadoRelation(bodyData.estado_servicio);
-        if (rel) dataToSave.estado_servicio = rel;
-      }
+      if (nuevoEstado) {
+        dataToSave.estado_servicio = normalizeEstadoRelation(nuevoEstadoRaw);
 
-      if (bodyData.fecha_surtido) {
-        dataToSave.fecha_surtido = bodyData.fecha_surtido;
-      }
-
-      if (bodyData.fecha_cancelado) {
-        dataToSave.fecha_cancelado = bodyData.fecha_cancelado;
+        // Si marca Surtido, ponemos fecha_surtido ahora
+        if (nuevoEstado.tipo === 'Surtido') {
+          dataToSave.fecha_surtido =
+            bodyData.fecha_surtido || new Date().toISOString();
+          // limpieza de cancelado por si antes estaba cancelado
+          dataToSave.fecha_cancelado = null;
+        }
       }
 
       ctx.request.body.data = dataToSave;
     } else {
-      // Admin / Callcenter: pueden mandar más campos,
-      // pero normalizamos igual estado_servicio si viene
+      // ---------------------------------------
+      // Admin / Callcenter
+      // ---------------------------------------
       const newData: any = { ...bodyData };
 
-      if (bodyData.estado_servicio) {
-        const rel = normalizeEstadoRelation(bodyData.estado_servicio);
-        if (rel) {
-          newData.estado_servicio = rel;
+      if (nuevoEstado) {
+        newData.estado_servicio = normalizeEstadoRelation(nuevoEstadoRaw);
+
+        if (nuevoEstado.tipo === 'Surtido') {
+          newData.fecha_surtido =
+            bodyData.fecha_surtido || new Date().toISOString();
+          newData.fecha_cancelado = null;
+        } else if (nuevoEstado.tipo === 'Cancelado') {
+          newData.fecha_cancelado =
+            bodyData.fecha_cancelado || new Date().toISOString();
+          newData.fecha_surtido = null;
+        } else if (
+          nuevoEstado.tipo === 'Programado' ||
+          nuevoEstado.tipo === 'Asignado'
+        ) {
+          // Estados "normales": limpiamos fechas de surtido/cancelado
+          newData.fecha_surtido = null;
+          newData.fecha_cancelado = null;
         }
       }
 

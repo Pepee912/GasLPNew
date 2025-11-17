@@ -1,3 +1,4 @@
+// src/app/services/servicios.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { environment } from 'src/environments/environment';
@@ -51,6 +52,20 @@ export class ServiciosService {
         ...this.getAuthHeaders(),
       },
     });
+    return res.data;
+  }
+
+  // 👉 NUEVO: listar servicios con filtros (find de Strapi)
+  async list(params: any = {}) {
+    const res = await axios.get(BASE, {
+      params,
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    // Strapi normalmente devuelve { data: [], meta: {} }
     return res.data;
   }
 }

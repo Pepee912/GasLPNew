@@ -1,13 +1,29 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Servicios de hoy</ion-title>
+    <ion-title>Servicios</ion-title>
+  
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Segmento Hoy / Todos -->
+  <ion-toolbar>
+    <ion-segment [value]="vista" (ionChange)="onVistaChange($event)">
+      <ion-segment-button value="hoy">
+        <ion-label>Hoy</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="todos">
+        <ion-label>Todos</ion-label>
+      </ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
 
-  <!-- Refresher -->
-  <ion-refresher slot="fixed" (ionRefresh)="loadServiciosHoy($event)">
+  <!-- Refresher (respeta vista actual) -->
+  <ion-refresher slot="fixed" (ionRefresh)="vista === 'hoy' ? loadServiciosHoy($event) : loadServiciosTodos($event)">
     <ion-refresher-content
       pullingText="Desliza para actualizar"
       refreshingSpinner="circles">
@@ -16,11 +32,36 @@
 
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Servicios de hoy</ion-title>
+      <ion-title size="large">Servicios</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <!-- Cargando -->
+  <!-- ================= Filtros superiores ================= -->
+  <div
+    class="filtros-container ion-padding-horizontal ion-padding-top"
+    *ngIf="!loading && !errorMessage && servicios.length > 0">
+
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      placeholder="Buscar por cliente, teléfono o dirección"
+      debounce="400">
+    </ion-searchbar>
+
+    <ion-item lines="none">
+      <ion-label>Filtrar por estado</ion-label>
+      <ion-select [(ngModel)]="filtroEstado">
+        <ion-select-option value="todos">Todos</ion-select-option>
+        <ion-select-option
+          *ngFor="let estado of estados"
+          [value]="estado.tipo">
+          {{ estado.tipo }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+  </div>
+
+  <!-- ================= Skeleton loading ================= -->
   <ng-container *ngIf="loading">
     <ion-list>
       <ion-item *ngFor="let item of [1,2,3,4]">
@@ -39,26 +80,42 @@
     </ion-list>
   </ng-container>
 
-  <!-- Error -->
+  <!-- ================= Error ================= -->
   <ng-container *ngIf="!loading && errorMessage">
     <ion-text color="danger" class="ion-padding">
       <p>{{ errorMessage }}</p>
     </ion-text>
   </ng-container>
 
-  <!-- Sin servicios -->
+  <!-- ================= Sin servicios ================= -->
   <ng-container *ngIf="!loading && !errorMessage && servicios.length === 0">
     <ion-item lines="none">
       <ion-label class="ion-text-center ion-padding">
-        <h2>No hay servicios programados para hoy.</h2>
-        <p>Cuando se registren servicios para la fecha actual aparecerán aquí.</p>
+        <h2>No hay servicios para mostrar.</h2>
+        <p>
+          {{ vista === 'hoy'
+            ? 'Cuando se registren servicios para la fecha actual aparecerán aquí.'
+            : 'Todavía no hay servicios registrados.' }}
+        </p>
       </ion-label>
     </ion-item>
   </ng-container>
 
-  <!-- Lista de servicios -->
-  <ion-list *ngIf="!loading && !errorMessage && servicios.length > 0">
-    <ion-item *ngFor="let servicio of servicios" lines="inset">
+  <!-- ================= Sin resultados (después de filtros) ================= -->
+  <ng-container
+    *ngIf="!loading && !errorMessage && servicios.length > 0 && serviciosFiltrados.length === 0">
+    <ion-item lines="none">
+      <ion-label class="ion-text-center ion-padding">
+        <h2>Sin resultados</h2>
+        <p>Prueba cambiando los filtros o la búsqueda.</p>
+      </ion-label>
+    </ion-item>
+  </ng-container>
+
+  <!-- ================= Lista de servicios ================= -->
+  <ion-list *ngIf="!loading && !errorMessage && serviciosFiltrados.length > 0">
+    <ion-item *ngFor="let servicio of serviciosFiltrados" lines="inset">
+
       <ion-label>
         <h2>{{ getNombreCliente(servicio) }}</h2>
 
@@ -82,35 +139,42 @@
           {{ getEstadoNombre(servicio) }}
         </p>
 
-        <!-- Selector de estado -->
+        <!-- ================= Selector de estado ================= -->
         <div class="estado-select">
           <ion-item lines="none">
             <ion-label>Actualizar estado</ion-label>
+
             <ion-select
               interface="popover"
               [value]="getEstadoSeleccionado(servicio)"
               (ionChange)="onEstadoChange(servicio, $event)"
               [disabled]="updatingId === (servicio.documentId || servicio.id)">
+
+              <!-- 🔥 Cambia según rol (operador solo ve Surtido) -->
               <ion-select-option
-                *ngFor="let estado of estados"
+                *ngFor="let estado of estadosParaSelect"
                 [value]="estado.documentId || estado.id">
                 {{ estado.tipo }}
               </ion-select-option>
+
             </ion-select>
           </ion-item>
         </div>
       </ion-label>
 
-      <!-- Badge con el estado -->
-      <ion-badge slot="end">
+      <!-- ================= Badge por estado ================= -->
+      <ion-badge
+        slot="end"
+        [color]="getEstadoColor(servicio)">
         {{ getEstadoNombre(servicio) }}
       </ion-badge>
 
-      <!-- Spinner pequeño mientras se actualiza ese servicio -->
+      <!-- ================= Spinner mientras se actualiza ================= -->
       <ion-spinner
         *ngIf="updatingId === (servicio.documentId || servicio.id)"
         slot="end">
       </ion-spinner>
+
     </ion-item>
   </ion-list>
 
