@@ -472,7 +472,7 @@ export interface ApiEstadoServicioEstadoServicio
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    servicio: Schema.Attribute.Relation<'oneToOne', 'api::servicio.servicio'>;
+    servicios: Schema.Attribute.Relation<'oneToMany', 'api::servicio.servicio'>;
     tipo: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -565,7 +565,7 @@ export interface ApiServicioServicio extends Struct.CollectionTypeSchema {
       'api::domicilio.domicilio'
     >;
     estado_servicio: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
       'api::estado-servicio.estado-servicio'
     >;
     fecha_cancelado: Schema.Attribute.DateTime;

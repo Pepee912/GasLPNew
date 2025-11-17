@@ -11,9 +11,9 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "servicio": {
+    "servicios": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::servicio.servicio",
       "mappedBy": "estado_servicio"
     },
