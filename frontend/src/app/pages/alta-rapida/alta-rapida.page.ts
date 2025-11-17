@@ -1,5 +1,3 @@
-// src/app/pages/alta-rapida/alta-rapida.page.ts
-
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { AlertController, ToastController, NavController } from '@ionic/angular';
@@ -65,7 +63,7 @@ export class AltaRapidaPage implements OnInit {
     private serviciosSrv: ServiciosService,
     private tipoSrv: TipoServiciosService,
     private rutasSrv: RutasService,
-    private estadoSrv: EstadoServicioService,      // 👈 NUEVO
+    private estadoSrv: EstadoServicioService,
     private toast: ToastController,
     private alert: AlertController,
     private nav: NavController,
@@ -150,9 +148,9 @@ export class AltaRapidaPage implements OnInit {
     }
   }
 
-  // 👇 NUEVO: decide el estado inicial según si tiene ruta o no
+  // Decide el estado inicial según si tiene ruta o no
   private async getEstadoInicial(rutaId: any): Promise<any | null> {
-    const tipo = rutaId ? 'Asignado' : 'Programado'; // regla de negocio
+    const tipo = rutaId ? 'Asignado' : 'Programado'; 
     try {
       const raw = await this.estadoSrv.getByTipo(tipo);
       if (!raw) {
@@ -264,6 +262,49 @@ export class AltaRapidaPage implements OnInit {
     }
   }
 
+  // ----------------- Helpers de domicilio -----------------
+
+  /** Saber si el formulario de domicilio tiene algún dato escrito */
+  private tieneDatosDomicilio(): boolean {
+    const dom = this.fDom.value;
+    return !!(
+      (dom.calle && dom.calle.trim()) ||
+      (dom.numero && dom.numero.trim()) ||
+      (dom.colonia && dom.colonia.trim()) ||
+      (dom.cp && String(dom.cp).trim()) ||
+      (dom.referencia && dom.referencia.trim())
+    );
+  }
+
+  /** Validar que haya domicilio completo cuando se va a crear un servicio */
+  private async validarDomicilioParaServicio(): Promise<boolean> {
+    if (this.usarDomicilioExistente) {
+      if (!this.domicilioElegidoDocumentId) {
+        await this.msg('Selecciona un domicilio para poder crear el servicio.', 'warning');
+        return false;
+      }
+      return true;
+    }
+
+    // No se usa domicilio existente: debe capturarse uno nuevo con TODOS los datos requeridos
+    const dom = this.fDom.value;
+
+    if (
+      !dom.calle || !dom.calle.trim() ||
+      !dom.numero || !dom.numero.trim() ||
+      !dom.colonia || !dom.colonia.trim() ||
+      !dom.cp || !String(dom.cp).trim()
+    ) {
+      await this.msg(
+        'Para crear un servicio debes capturar calle, número, colonia y código postal.',
+        'warning'
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   // ----------------- Guardar todo -----------------
   async guardar() {
     const tel = this.sanitizePhone(this.fCliente.value.telefono || '');
@@ -275,9 +316,18 @@ export class AltaRapidaPage implements OnInit {
     const srvValues = this.fSrv.value;
     const quiereServicio = !!srvValues.tipo_servicio;
 
+    // Si va a haber servicio, la fecha programada es obligatoria
     if (quiereServicio && !srvValues.fecha_programado) {
       await this.msg('Selecciona la fecha programada para el servicio.', 'warning');
       return;
+    }
+
+    // Si va a haber servicio, debe haber un domicilio válido y completo
+    if (quiereServicio) {
+      const okDom = await this.validarDomicilioParaServicio();
+      if (!okDom) {
+        return;
+      }
     }
 
     this.submitting = true;
@@ -298,12 +348,15 @@ export class AltaRapidaPage implements OnInit {
 
       // 2) Domicilio
       let domicilioRef: string | number | null = null;
+      const hayDatosDom = this.tieneDatosDomicilio();
 
       if (this.usarDomicilioExistente && this.domicilioElegidoDocumentId) {
         // Usa un domicilio existente
         domicilioRef = this.domicilioElegidoDocumentId;
-      } else {
-        // Crea domicilio nuevo
+      } else if (hayDatosDom || quiereServicio) {
+        // Crea domicilio nuevo SOLO si:
+        // - el usuario capturó datos, o
+        // - se va a crear un servicio (ya validado que el domicilio esté completo)
         const domPayload: AnyEntity = {
           calle: this.fDom.value.calle || '',
           numero: this.fDom.value.numero || '',
@@ -317,11 +370,22 @@ export class AltaRapidaPage implements OnInit {
         const domRaw = (domRes && (domRes as any).data) ? (domRes as any).data : domRes;
         const domObj = this.flat(domRaw);
         domicilioRef = this.docIdOf(domObj);
+      } else {
+        // No hay domicilio existente ni datos capturados y NO se va a crear servicio
+        // → no se crea domicilio en blanco
+        domicilioRef = null;
       }
 
       // 3) Servicio solo si se indicó tipo_servicio
       if (quiereServicio) {
-        // 👉 Estado inicial: Programado o Asignado según haya ruta o no
+        if (!domicilioRef) {
+          // Seguridad extra (no debería ocurrir si validarDomicilioParaServicio() pasó)
+          await this.msg('No se pudo determinar un domicilio para el servicio.', 'danger');
+          this.submitting = false;
+          return;
+        }
+
+        // Estado inicial: Programado o Asignado según haya ruta o no
         const rutaRef = srvValues.ruta || null;
         const estadoInicial = await this.getEstadoInicial(rutaRef);
         const estadoRef = estadoInicial ? this.docIdOf(estadoInicial) : null;
@@ -345,8 +409,8 @@ export class AltaRapidaPage implements OnInit {
 
       await this.msg(
         quiereServicio
-          ? 'Datos guardados correctamente'
-          : 'Cliente y domicilio guardados (sin servicio)',
+          ? 'Datos guardados correctamente.'
+          : 'Cliente (y domicilio si se capturó) guardados correctamente.',
         'success'
       );
       this.nav.back();
