@@ -3,26 +3,32 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Usuarios</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openCreateModal()">
+        <ion-icon name="person-add-outline" slot="start"></ion-icon>
+        Nuevo usuario
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
 
-  <!-- Loader mientras se cargan usuarios/roles -->
+  <!-- Loader -->
   <ng-container *ngIf="loading; else contentTpl">
-    <ion-spinner class="ion-margin" name="crescent"></ion-spinner>
     <div class="ion-text-center ion-padding">
-      Cargando usuarios...
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando usuarios...</p>
     </div>
   </ng-container>
 
   <ng-template #contentTpl>
 
-    <!-- Si no hay usuarios -->
     <ng-container *ngIf="usuarios && usuarios.length > 0; else emptyTpl">
 
       <ion-list>
         <ion-item *ngFor="let usuario of usuarios">
+          <!-- Info principal del usuario -->
           <ion-label>
             <h2>
               {{ usuario.username }}
@@ -45,6 +51,10 @@
                 <span *ngIf="usuario.personal?.nombre">
                   ({{ usuario.personal.nombre }} {{ usuario.personal.apellidos }})
                 </span>
+                <span *ngIf="usuario.personal?.ruta">
+                  - Ruta:
+                  {{ usuario.personal.ruta.nombre || usuario.personal.ruta.attributes?.nombre }}
+                </span>
               </span>
               <ng-template #sinPersonal>
                 No asignado
@@ -52,19 +62,19 @@
             </p>
           </ion-label>
 
-          <!-- Selector de rol -->
-          <ion-select
-            interface="popover"
-            [value]="usuario.role?.id"
-            (ionChange)="onChangeRol(usuario, $event.detail.value)"
-          >
-            <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
-              {{ rol.name }}
-            </ion-select-option>
-          </ion-select>
+          <!-- Rol mostrado como chip, SOLO lectura -->
+          <ion-chip slot="end" outline="true">
+            {{ usuario.role?.name || 'Sin rol' }}
+          </ion-chip>
+
+          <!-- Botón editar -->
+          <ion-button slot="end" fill="clear" (click)="openEditModal(usuario)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
 
           <!-- Botón bloquear / desbloquear -->
           <ion-button
+            slot="end"
             fill="outline"
             [color]="usuario.blocked ? 'success' : 'danger'"
             (click)="onToggleBloqueo(usuario)"
@@ -77,7 +87,6 @@
 
     </ng-container>
 
-    <!-- Template cuando no hay usuarios -->
     <ng-template #emptyTpl>
       <div class="ion-text-center ion-padding">
         <h2>No hay usuarios registrados</h2>
@@ -86,5 +95,161 @@
     </ng-template>
 
   </ng-template>
+
+  <!-- 🔹 MODAL CREAR USUARIO -->
+  <ion-modal [isOpen]="isCreateModalOpen" (didDismiss)="closeCreateModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nuevo usuario</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeCreateModal()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-item>
+          <ion-label position="stacked">Usuario</ion-label>
+          <ion-input [(ngModel)]="newUser.username" placeholder="Nombre de usuario"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Correo</ion-label>
+          <ion-input [(ngModel)]="newUser.email" type="email" placeholder="correo@ejemplo.com"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Contraseña</ion-label>
+          <ion-input [(ngModel)]="newUser.password" type="password"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Rol</ion-label>
+          <ion-select
+            [(ngModel)]="newUser.roleId"
+            interface="popover"
+            (ionChange)="onRoleChangeCreate($event.detail.value)"
+          >
+            <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
+              {{ rol.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Campos extra para Operador -->
+        <ng-container *ngIf="isOperadorSelectedCreate">
+          <ion-item>
+            <ion-label position="stacked">Nombre (Personal)</ion-label>
+            <ion-input [(ngModel)]="newUser.personalNombre" placeholder="Nombre del operador"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Apellidos (Personal)</ion-label>
+            <ion-input [(ngModel)]="newUser.personalApellidos" placeholder="Apellidos del operador"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Teléfono (Personal)</ion-label>
+            <ion-input [(ngModel)]="newUser.personalTelefono" type="tel" placeholder="Teléfono del operador"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Ruta (opcional)</ion-label>
+            <ion-select [(ngModel)]="newUser.personalRutaId" interface="popover">
+              <ion-select-option [value]="null">Sin ruta asignada</ion-select-option>
+              <ion-select-option *ngFor="let ruta of rutas" [value]="ruta.id">
+                {{ getRutaNombre(ruta) }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ng-container>
+
+        <div class="ion-padding-top">
+          <ion-button expand="block" (click)="saveNewUser()">
+            Guardar
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- 🔹 MODAL EDITAR USUARIO -->
+  <ion-modal [isOpen]="isEditModalOpen" (didDismiss)="closeEditModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Editar usuario</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeEditModal()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-item>
+          <ion-label position="stacked">Usuario</ion-label>
+          <ion-input [(ngModel)]="editUser.username"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Correo</ion-label>
+          <ion-input [(ngModel)]="editUser.email" type="email"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Rol</ion-label>
+          <ion-select
+            [(ngModel)]="editUser.roleId"
+            interface="popover"
+            (ionChange)="onRoleChangeEdit($event.detail.value)"
+          >
+            <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
+              {{ rol.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Bloqueado</ion-label>
+          <ion-toggle [(ngModel)]="editUser.blocked"></ion-toggle>
+        </ion-item>
+
+        <!-- Campos extra para Operador en edición -->
+        <ng-container *ngIf="isOperadorSelectedEdit">
+          <ion-item>
+            <ion-label position="stacked">Nombre (Personal)</ion-label>
+            <ion-input [(ngModel)]="editUser.personalNombre"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Apellidos (Personal)</ion-label>
+            <ion-input [(ngModel)]="editUser.personalApellidos"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Teléfono (Personal)</ion-label>
+            <ion-input [(ngModel)]="editUser.personalTelefono" type="tel"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Ruta (opcional)</ion-label>
+            <ion-select [(ngModel)]="editUser.personalRutaId" interface="popover">
+              <ion-select-option [value]="null">Sin ruta asignada</ion-select-option>
+              <ion-select-option *ngFor="let ruta of rutas" [value]="ruta.id">
+                {{ getRutaNombre(ruta) }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ng-container>
+
+        <div class="ion-padding-top">
+          <ion-button expand="block" (click)="saveEditUser()">
+            Guardar cambios
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
 </ion-content>

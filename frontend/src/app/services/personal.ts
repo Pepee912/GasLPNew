@@ -1,9 +1,8 @@
 // src/app/services/personal.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
-import { environment } from 'src/environments/environment.prod'; // o environment
+import { environment } from 'src/environments/environment.prod'; 
 
-// Si el tipo en Strapi es api::personal.personal, el endpoint REST será /personals
 const BASE_PERSONAL = `${environment.apiUrl}/personals`;
 
 @Injectable({
@@ -18,9 +17,6 @@ export class PersonalService {
       : {};
   }
 
-  /**
-   * Crear un registro de personal a partir de un usuario.
-   */
   async createFromUser(
     user: any,
     extra?: {
@@ -51,16 +47,20 @@ export class PersonalService {
       }
     );
 
-    return res.data;
+    return res.data; 
   }
 
-  /**
-   * Actualizar un registro de personal (por ejemplo para asignar ruta).
-   */
-  async update(personalId: number, data: any) {
+  async update(personalId: number, data: {
+    nombre?: string;
+    apellidos?: string;
+    telefono?: string;
+    ruta?: number | null;
+  }) {
+    const payload = { data };
+
     const res = await axios.put(
       `${BASE_PERSONAL}/${personalId}`,
-      { data },
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -71,4 +71,34 @@ export class PersonalService {
 
     return res.data;
   }
+
+  async delete(personalId: number) {
+    const res = await axios.delete(
+      `${BASE_PERSONAL}/${personalId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders(),
+        },
+      }
+    );
+    return res.data;
+  }
+
+  async findByTelefono(telefono: string) {
+    const res = await axios.get(BASE_PERSONAL, {
+      params: {
+        'filters[telefono][$eq]': telefono,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    const data = res.data.data ?? res.data;
+    return data; 
+  }
+
+
 }

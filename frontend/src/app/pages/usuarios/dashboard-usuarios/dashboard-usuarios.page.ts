@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { UsuariosService } from 'src/app/services/usuarios';
 import { PersonalService } from 'src/app/services/personal';
+import { RutasService } from 'src/app/services/rutas';
 
 @Component({
   selector: 'app-dashboard-usuarios',
@@ -15,14 +16,47 @@ export class DashboardUsuariosPage implements OnInit {
 
   usuarios: any[] = [];
   roles: any[] = [];
+  rutas: any[] = [];
   loading = false;
 
-  // guarda el rol "Operador" para comparaciones rápidas
   operadorRole: any | null = null;
+
+  // Modales
+  isCreateModalOpen = false;
+  isEditModalOpen = false;
+
+  // Modelo para CREAR usuario
+  newUser: any = {
+    username: '',
+    email: '',
+    password: '',
+    roleId: null,
+    personalNombre: '',
+    personalApellidos: '',
+    personalTelefono: '',
+    personalRutaId: null,
+  };
+  isOperadorSelectedCreate = false;
+
+  // Modelo para EDITAR usuario
+  editUser: any = {
+    id: null,
+    username: '',
+    email: '',
+    roleId: null,
+    blocked: false,
+    personalNombre: '',
+    personalApellidos: '',
+    personalTelefono: '',
+    personalRutaId: null,
+    personalId: null,
+  };
+  isOperadorSelectedEdit = false;
 
   constructor(
     private usuariosSrv: UsuariosService,
     private personalSrv: PersonalService,
+    private rutasSrv: RutasService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
   ) { }
@@ -38,62 +72,61 @@ export class DashboardUsuariosPage implements OnInit {
   private async cargarDatos() {
     this.loading = true;
     try {
-      // 1) Cargar roles
+      // Roles
       this.roles = await this.usuariosSrv.listRoles();
-
-      // identificar el rol Operador por nombre o type
       this.operadorRole =
         this.roles.find((r: any) =>
           r.name === 'Operador' || r.type === 'operador'
         ) || null;
 
-      // 2) Cargar usuarios
+      // Usuarios (ya vienen con role y personal poblados desde el servicio)
       this.usuarios = await this.usuariosSrv.list();
       console.log('Usuarios cargados:', this.usuarios);
 
+      // Rutas activas
+      const rutasRes = await this.rutasSrv.list();
+      this.rutas = rutasRes.data ?? rutasRes;
+      console.log('Rutas activas:', this.rutas);
+
     } catch (err) {
-      console.error('Error cargando usuarios/roles', err);
-      this.presentToast('Error al cargar usuarios o roles');
+      console.error('Error cargando datos', err);
+      this.presentToast('Error al cargar usuarios, roles o rutas');
     } finally {
       this.loading = false;
     }
   }
 
-  /**
-   * Cambiar rol desde el dashboard.
-   * Se le puede llamar desde un ion-select, botones, etc.
-   */
-  async onChangeRol(usuario: any, nuevoRolId: number) {
-    try {
-      const updated = await this.usuariosSrv.updateRole(usuario.id, nuevoRolId);
-      usuario.role = updated.role; // actualizar vista
-
-      // Si el nuevo rol es Operador y aún no tiene registro en Personal, lo creamos.
-      if (this.operadorRole && nuevoRolId === this.operadorRole.id) {
-        if (!usuario.personal) {
-          const personal = await this.personalSrv.createFromUser(usuario, {
-            nombre: usuario.username,
-            apellidos: '',
-            telefono: '', // luego podrías tomarlo de algún campo
-          });
-
-          // Strapi suele devolver algo tipo { data: {...} } o directamente el objeto,
-          // ajusta según tu respuesta real:
-          usuario.personal = (personal.data ?? personal);
-        }
-      }
-
-      this.presentToast('Rol actualizado correctamente');
-
-    } catch (err) {
-      console.error('Error actualizando rol', err);
-      this.presentToast('Error al actualizar el rol');
-    }
+  // Helper para mostrar nombre de ruta tanto si viene con attributes como plano
+  getRutaNombre(ruta: any): string {
+    return ruta?.attributes?.nombre || ruta?.nombre || 'Ruta';
   }
 
-  /**
-   * Bloquear / desbloquear usuario (en lugar de eliminar).
-   */
+  // Crear personal si el rol es Operador (solo si todavía no tiene)
+  private async ensurePersonalIfOperador(
+    usuario: any,
+    roleId: number,
+    extraPersonal?: {
+      nombre?: string;
+      apellidos?: string;
+      telefono?: string;
+      rutaId?: number | null;
+    }
+  ) {
+    if (!this.operadorRole) return;
+    if (roleId !== this.operadorRole.id) return;
+    if (usuario.personal) return;
+
+    const personal = await this.personalSrv.createFromUser(usuario, {
+      nombre: extraPersonal?.nombre ?? usuario.username,
+      apellidos: extraPersonal?.apellidos ?? '',
+      telefono: extraPersonal?.telefono ?? '',
+      rutaId: extraPersonal?.rutaId ?? null,
+    });
+
+    usuario.personal = personal.data ?? personal;
+  }
+
+  // Bloquear / desbloquear usuario
   async onToggleBloqueo(usuario: any) {
     const nuevoEstado = !usuario.blocked;
     const accion = nuevoEstado ? 'bloquear' : 'desbloquear';
@@ -126,6 +159,249 @@ export class DashboardUsuariosPage implements OnInit {
     await alert.present();
   }
 
+  // ===========================
+  //       CREAR USUARIO
+  // ===========================
+
+  openCreateModal() {
+    this.newUser = {
+      username: '',
+      email: '',
+      password: '',
+      roleId: this.operadorRole ? this.operadorRole.id : null,
+      personalNombre: '',
+      personalApellidos: '',
+      personalTelefono: '',
+      personalRutaId: null,
+    };
+
+    this.isOperadorSelectedCreate =
+      !!this.operadorRole && this.newUser.roleId === this.operadorRole.id;
+
+    this.isCreateModalOpen = true;
+  }
+
+  closeCreateModal() {
+    this.isCreateModalOpen = false;
+  }
+
+  onRoleChangeCreate(roleId: number) {
+    this.newUser.roleId = roleId;
+    this.isOperadorSelectedCreate =
+      !!this.operadorRole && roleId === this.operadorRole.id;
+  }
+
+  async saveNewUser() {
+    if (!this.newUser.username || !this.newUser.email || !this.newUser.password || !this.newUser.roleId) {
+      this.presentToast('Completa todos los campos básicos para crear el usuario');
+      return;
+    }
+
+    // ¿Será operador?
+    const esOperador =
+      this.operadorRole && this.newUser.roleId === this.operadorRole.id;
+
+    if (esOperador) {
+      // Validar campos de personal obligatorios
+      if (
+        !this.newUser.personalNombre ||
+        !this.newUser.personalApellidos ||
+        !this.newUser.personalTelefono
+      ) {
+        this.presentToast(
+          'Para usuarios con rol Operador debes capturar nombre, apellidos y teléfono del personal'
+        );
+        return;
+      }
+
+      // 🔍 Validar teléfono único en personal
+      const existentes = await this.personalSrv.findByTelefono(this.newUser.personalTelefono);
+      if (existentes && existentes.length > 0) {
+        this.presentToast('Ya existe un operador con ese teléfono. Usa otro número.');
+        return;
+      }
+    }
+
+    try {
+      const body = {
+        username: this.newUser.username,
+        email: this.newUser.email,
+        password: this.newUser.password,
+        role: this.newUser.roleId,
+        provider: 'local',
+        confirmed: true,
+        blocked: false,
+      };
+
+      const created = await this.usuariosSrv.create(body);
+
+      // Si es operador, crear personal con datos y ruta (ruta sigue opcional)
+      await this.ensurePersonalIfOperador(created, this.newUser.roleId, {
+        nombre: this.newUser.personalNombre,
+        apellidos: this.newUser.personalApellidos,
+        telefono: this.newUser.personalTelefono,
+        rutaId: this.newUser.personalRutaId ?? null,
+      });
+
+      this.usuarios.push(created);
+
+      this.presentToast('Usuario creado correctamente');
+      this.closeCreateModal();
+    } catch (err) {
+      console.error('Error creando usuario', err);
+      this.presentToast('Error al crear el usuario');
+    }
+  }
+
+  // ===========================
+  //       EDITAR USUARIO
+  // ===========================
+
+  openEditModal(usuario: any) {
+    this.editUser = {
+      id: usuario.id,
+      username: usuario.username,
+      email: usuario.email,
+      roleId: usuario.role?.id || null,
+      blocked: usuario.blocked,
+      personalNombre: usuario.personal?.nombre || '',
+      personalApellidos: usuario.personal?.apellidos || '',
+      personalTelefono: usuario.personal?.telefono || '',
+      personalRutaId: usuario.personal?.ruta?.id || null,
+      personalId: usuario.personal?.id || null,
+    };
+
+    this.isOperadorSelectedEdit =
+      !!this.operadorRole && this.editUser.roleId === this.operadorRole.id;
+
+    this.isEditModalOpen = true;
+  }
+
+  closeEditModal() {
+    this.isEditModalOpen = false;
+  }
+
+  onRoleChangeEdit(roleId: number) {
+    this.editUser.roleId = roleId;
+    this.isOperadorSelectedEdit =
+      !!this.operadorRole && roleId === this.operadorRole.id;
+  }
+
+  async saveEditUser() {
+    if (!this.editUser.id || !this.editUser.username || !this.editUser.email || !this.editUser.roleId) {
+      this.presentToast('Completa los datos obligatorios');
+      return;
+    }
+
+    const seraOperador =
+      this.operadorRole && this.editUser.roleId === this.operadorRole.id;
+
+    if (seraOperador) {
+      // Validar campos de personal obligatorios
+      if (
+        !this.editUser.personalNombre ||
+        !this.editUser.personalApellidos ||
+        !this.editUser.personalTelefono
+      ) {
+        this.presentToast(
+          'Para usuarios con rol Operador debes capturar nombre, apellidos y teléfono del personal'
+        );
+        return;
+      }
+
+      // 🔍 Validar teléfono único en personal (ignorando su propio registro)
+      const existentes = await this.personalSrv.findByTelefono(this.editUser.personalTelefono);
+      const lista = existentes || [];
+
+      const otros = lista.filter((p: any) => {
+        const id = p.id ?? p?.documentId;
+        return id !== this.editUser.personalId; // si existe otro id distinto, está repetido
+      });
+
+      if (otros.length > 0) {
+        this.presentToast('Ese teléfono ya está asignado a otro operador.');
+        return;
+      }
+    }
+
+    // Usuario antes de actualizar (para saber qué rol tenía y si tenía personal)
+    const idxOriginal = this.usuarios.findIndex(u => u.id === this.editUser.id);
+    const usuarioOriginal = idxOriginal > -1 ? this.usuarios[idxOriginal] : null;
+
+    try {
+      const body = {
+        username: this.editUser.username,
+        email: this.editUser.email,
+        role: this.editUser.roleId,
+        blocked: this.editUser.blocked,
+      };
+
+      const updated = await this.usuariosSrv.update(this.editUser.id, body);
+
+      const idx = this.usuarios.findIndex(u => u.id === this.editUser.id);
+      if (idx > -1) {
+        this.usuarios[idx] = {
+          ...this.usuarios[idx],
+          ...updated,
+        };
+      }
+
+        if (this.operadorRole && usuarioOriginal) {
+          const eraOperador =
+            usuarioOriginal.role?.id === this.operadorRole.id;
+          const seraOperador =
+            this.editUser.roleId === this.operadorRole.id;
+
+          const userRef = this.usuarios[idx];
+
+          // Caso 1: era operador y ya NO lo será -> eliminar personal
+          if (eraOperador && !seraOperador && usuarioOriginal.personal?.id) {
+            await this.personalSrv.delete(usuarioOriginal.personal.id);
+            userRef.personal = null;
+          }
+
+          // Caso 2: no era operador y ahora SÍ lo será -> crear personal
+          if (!eraOperador && seraOperador) {
+            await this.ensurePersonalIfOperador(userRef, this.editUser.roleId, {
+              nombre: this.editUser.personalNombre || this.editUser.username,
+              apellidos: this.editUser.personalApellidos,
+              telefono: this.editUser.personalTelefono,
+              rutaId: this.editUser.personalRutaId ?? null,
+            });
+          }
+
+          // Caso 3: sigue siendo operador -> actualizar personal
+          if (eraOperador && seraOperador) {
+            if (this.editUser.personalId) {
+              const updatedPersonal = await this.personalSrv.update(this.editUser.personalId, {
+                nombre: this.editUser.personalNombre || this.editUser.username,
+                apellidos: this.editUser.personalApellidos,
+                telefono: this.editUser.personalTelefono,
+                ruta: this.editUser.personalRutaId ?? null,
+              });
+
+              userRef.personal = updatedPersonal.data ?? updatedPersonal;
+            } else {
+              // Por si acaso no tenía personal pero ya era operador
+              await this.ensurePersonalIfOperador(userRef, this.editUser.roleId, {
+                nombre: this.editUser.personalNombre || this.editUser.username,
+                apellidos: this.editUser.personalApellidos,
+                telefono: this.editUser.personalTelefono,
+                rutaId: this.editUser.personalRutaId ?? null,
+              });
+            }
+          }
+        }
+
+      this.presentToast('Usuario actualizado correctamente');
+      this.closeEditModal();
+    } catch (err) {
+      console.error('Error actualizando usuario', err);
+      this.presentToast('Error al actualizar el usuario');
+    }
+  }
+
+  // Toast genérico
   private async presentToast(message: string) {
     const toast = await this.toastCtrl.create({
       message,
