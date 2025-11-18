@@ -36,20 +36,6 @@
 
       <!-- Grid de módulos -->
       <div class="dashboard-grid">
-        <!-- CLIENTES -->
-        <div
-          class="module-card module-clientes"
-          *ngIf="canViewClientes"
-          (click)="goClientes()">
-          <div class="module-icon">
-            <ion-icon name="people-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Clientes</h2>
-          <p class="module-text">
-            Consulta, registra y actualiza la información de los clientes.
-          </p>
-          <span class="module-link">Ir a Clientes</span>
-        </div>
 
         <!-- USUARIOS -->
         <div
@@ -64,6 +50,21 @@
             Administra cuentas y permisos del personal del sistema.
           </p>
           <span class="module-link">Ir a Usuarios</span>
+        </div>
+        
+        <!-- CLIENTES -->
+        <div
+          class="module-card module-clientes"
+          *ngIf="canViewClientes"
+          (click)="goClientes()">
+          <div class="module-icon">
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Clientes</h2>
+          <p class="module-text">
+            Consulta, registra y actualiza la información de los clientes.
+          </p>
+          <span class="module-link">Ir a Clientes</span>
         </div>
 
         <!-- SERVICIOS -->

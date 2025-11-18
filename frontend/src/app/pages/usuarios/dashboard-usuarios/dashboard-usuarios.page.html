@@ -1,13 +1,90 @@
-<ion-header [translucent]="true">
+<!-- src/app/pages/usuarios/dashboard-usuarios/dashboard-usuarios.page.html -->
+
+<ion-header>
   <ion-toolbar>
-    <ion-title>dashboard-usuarios</ion-title>
+    <ion-title>Usuarios</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard-usuarios</ion-title>
-    </ion-toolbar>
-  </ion-header>
+
+  <!-- Loader mientras se cargan usuarios/roles -->
+  <ng-container *ngIf="loading; else contentTpl">
+    <ion-spinner class="ion-margin" name="crescent"></ion-spinner>
+    <div class="ion-text-center ion-padding">
+      Cargando usuarios...
+    </div>
+  </ng-container>
+
+  <ng-template #contentTpl>
+
+    <!-- Si no hay usuarios -->
+    <ng-container *ngIf="usuarios && usuarios.length > 0; else emptyTpl">
+
+      <ion-list>
+        <ion-item *ngFor="let usuario of usuarios">
+          <ion-label>
+            <h2>
+              {{ usuario.username }}
+              <ion-badge *ngIf="usuario.blocked" color="danger" class="badge-bloqueado">
+                Bloqueado
+              </ion-badge>
+            </h2>
+
+            <p>{{ usuario.email }}</p>
+
+            <p>
+              <strong>Rol actual:</strong>
+              {{ usuario.role?.name || 'Sin rol' }}
+            </p>
+
+            <p>
+              <strong>Personal:</strong>
+              <span *ngIf="usuario.personal; else sinPersonal">
+                Asignado
+                <span *ngIf="usuario.personal?.nombre">
+                  ({{ usuario.personal.nombre }} {{ usuario.personal.apellidos }})
+                </span>
+              </span>
+              <ng-template #sinPersonal>
+                No asignado
+              </ng-template>
+            </p>
+          </ion-label>
+
+          <!-- Selector de rol -->
+          <ion-select
+            interface="popover"
+            [value]="usuario.role?.id"
+            (ionChange)="onChangeRol(usuario, $event.detail.value)"
+          >
+            <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
+              {{ rol.name }}
+            </ion-select-option>
+          </ion-select>
+
+          <!-- Botón bloquear / desbloquear -->
+          <ion-button
+            fill="outline"
+            [color]="usuario.blocked ? 'success' : 'danger'"
+            (click)="onToggleBloqueo(usuario)"
+            class="ion-margin-start"
+          >
+            {{ usuario.blocked ? 'Desbloquear' : 'Bloquear' }}
+          </ion-button>
+        </ion-item>
+      </ion-list>
+
+    </ng-container>
+
+    <!-- Template cuando no hay usuarios -->
+    <ng-template #emptyTpl>
+      <div class="ion-text-center ion-padding">
+        <h2>No hay usuarios registrados</h2>
+        <p>Cuando se registren usuarios verás la lista aquí.</p>
+      </div>
+    </ng-template>
+
+  </ng-template>
+
 </ion-content>
