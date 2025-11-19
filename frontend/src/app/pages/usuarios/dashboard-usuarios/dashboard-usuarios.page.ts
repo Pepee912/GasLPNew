@@ -34,7 +34,7 @@ export class DashboardUsuariosPage implements OnInit {
     personalNombre: '',
     personalApellidos: '',
     personalTelefono: '',
-    personalRutaId: null,
+    personalRutaId: null as string | null,  // documentId de ruta
   };
   isOperadorSelectedCreate = false;
 
@@ -48,8 +48,8 @@ export class DashboardUsuariosPage implements OnInit {
     personalNombre: '',
     personalApellidos: '',
     personalTelefono: '',
-    personalRutaId: null,
-    personalId: null,
+    personalRutaId: null as string | null,  
+    personalId: null as string | null,      
   };
   isOperadorSelectedEdit = false;
 
@@ -79,14 +79,12 @@ export class DashboardUsuariosPage implements OnInit {
           r.name === 'Operador' || r.type === 'operador'
         ) || null;
 
-      // Usuarios (ya vienen con role y personal poblados desde el servicio)
+      // Usuarios
       this.usuarios = await this.usuariosSrv.list();
-      console.log('Usuarios cargados:', this.usuarios);
 
       // Rutas activas
       const rutasRes = await this.rutasSrv.list();
       this.rutas = rutasRes.data ?? rutasRes;
-      console.log('Rutas activas:', this.rutas);
 
     } catch (err) {
       console.error('Error cargando datos', err);
@@ -96,7 +94,6 @@ export class DashboardUsuariosPage implements OnInit {
     }
   }
 
-  // Helper para mostrar nombre de ruta tanto si viene con attributes como plano
   getRutaNombre(ruta: any): string {
     return ruta?.attributes?.nombre || ruta?.nombre || 'Ruta';
   }
@@ -109,7 +106,7 @@ export class DashboardUsuariosPage implements OnInit {
       nombre?: string;
       apellidos?: string;
       telefono?: string;
-      rutaId?: number | null;
+      rutaId?: string | null;  // documentId de ruta
     }
   ) {
     if (!this.operadorRole) return;
@@ -172,7 +169,7 @@ export class DashboardUsuariosPage implements OnInit {
       personalNombre: '',
       personalApellidos: '',
       personalTelefono: '',
-      personalRutaId: null,
+      personalRutaId: null as string | null,
     };
 
     this.isOperadorSelectedCreate =
@@ -197,12 +194,10 @@ export class DashboardUsuariosPage implements OnInit {
       return;
     }
 
-    // ¿Será operador?
     const esOperador =
       this.operadorRole && this.newUser.roleId === this.operadorRole.id;
 
     if (esOperador) {
-      // Validar campos de personal obligatorios
       if (
         !this.newUser.personalNombre ||
         !this.newUser.personalApellidos ||
@@ -214,7 +209,7 @@ export class DashboardUsuariosPage implements OnInit {
         return;
       }
 
-      // 🔍 Validar teléfono único en personal
+      // Validar teléfono único en personal
       const existentes = await this.personalSrv.findByTelefono(this.newUser.personalTelefono);
       if (existentes && existentes.length > 0) {
         this.presentToast('Ya existe un operador con ese teléfono. Usa otro número.');
@@ -235,7 +230,7 @@ export class DashboardUsuariosPage implements OnInit {
 
       const created = await this.usuariosSrv.create(body);
 
-      // Si es operador, crear personal con datos y ruta (ruta sigue opcional)
+      // Si es operador, crear personal con datos y ruta (documentId, opcional)
       await this.ensurePersonalIfOperador(created, this.newUser.roleId, {
         nombre: this.newUser.personalNombre,
         apellidos: this.newUser.personalApellidos,
@@ -258,6 +253,12 @@ export class DashboardUsuariosPage implements OnInit {
   // ===========================
 
   openEditModal(usuario: any) {
+    // Tomamos la ruta de personal en sus posibles formas
+    const rutaRaw = usuario.personal?.ruta;
+    const rutaObj = rutaRaw?.data ?? rutaRaw ?? null;
+
+    const rutaDocumentId = rutaObj?.documentId || null;
+
     this.editUser = {
       id: usuario.id,
       username: usuario.username,
@@ -267,8 +268,10 @@ export class DashboardUsuariosPage implements OnInit {
       personalNombre: usuario.personal?.nombre || '',
       personalApellidos: usuario.personal?.apellidos || '',
       personalTelefono: usuario.personal?.telefono || '',
-      personalRutaId: usuario.personal?.ruta?.id || null,
-      personalId: usuario.personal?.id || null,
+      // 👇 ya no quedará en null si la ruta viene bien populada
+      personalRutaId: rutaDocumentId,
+      // seguimos usando el documentId de personal para update/delete
+      personalId: usuario.personal?.documentId || null,
     };
 
     this.isOperadorSelectedEdit =
@@ -297,7 +300,6 @@ export class DashboardUsuariosPage implements OnInit {
       this.operadorRole && this.editUser.roleId === this.operadorRole.id;
 
     if (seraOperador) {
-      // Validar campos de personal obligatorios
       if (
         !this.editUser.personalNombre ||
         !this.editUser.personalApellidos ||
@@ -309,13 +311,12 @@ export class DashboardUsuariosPage implements OnInit {
         return;
       }
 
-      // 🔍 Validar teléfono único en personal (ignorando su propio registro)
+      // Validar teléfono único en personal (ignorando su propio personalDocumentId)
       const existentes = await this.personalSrv.findByTelefono(this.editUser.personalTelefono);
       const lista = existentes || [];
 
       const otros = lista.filter((p: any) => {
-        const id = p.id ?? p?.documentId;
-        return id !== this.editUser.personalId; // si existe otro id distinto, está repetido
+        return p.documentId !== this.editUser.personalId;  
       });
 
       if (otros.length > 0) {
@@ -324,7 +325,6 @@ export class DashboardUsuariosPage implements OnInit {
       }
     }
 
-    // Usuario antes de actualizar (para saber qué rol tenía y si tenía personal)
     const idxOriginal = this.usuarios.findIndex(u => u.id === this.editUser.id);
     const usuarioOriginal = idxOriginal > -1 ? this.usuarios[idxOriginal] : null;
 
@@ -346,22 +346,43 @@ export class DashboardUsuariosPage implements OnInit {
         };
       }
 
-        if (this.operadorRole && usuarioOriginal) {
-          const eraOperador =
-            usuarioOriginal.role?.id === this.operadorRole.id;
-          const seraOperador =
-            this.editUser.roleId === this.operadorRole.id;
+      if (this.operadorRole && usuarioOriginal) {
+        const eraOperador =
+          usuarioOriginal.role?.id === this.operadorRole.id;
+        const seraOperadorFinal =
+          this.editUser.roleId === this.operadorRole.id;
 
-          const userRef = this.usuarios[idx];
+        const userRef = this.usuarios[idx];
 
-          // Caso 1: era operador y ya NO lo será -> eliminar personal
-          if (eraOperador && !seraOperador && usuarioOriginal.personal?.id) {
-            await this.personalSrv.delete(usuarioOriginal.personal.id);
-            userRef.personal = null;
-          }
+        // Caso 1: era operador y ya NO lo será -> eliminar personal
+        if (eraOperador && !seraOperadorFinal && usuarioOriginal.personal?.documentId) {
+          await this.personalSrv.delete(usuarioOriginal.personal.documentId);
+          userRef.personal = null;
+        }
 
-          // Caso 2: no era operador y ahora SÍ lo será -> crear personal
-          if (!eraOperador && seraOperador) {
+        // Caso 2: no era operador y ahora SÍ lo será -> crear personal
+        if (!eraOperador && seraOperadorFinal) {
+          await this.ensurePersonalIfOperador(userRef, this.editUser.roleId, {
+            nombre: this.editUser.personalNombre || this.editUser.username,
+            apellidos: this.editUser.personalApellidos,
+            telefono: this.editUser.personalTelefono,
+            rutaId: this.editUser.personalRutaId ?? null,
+          });
+        }
+
+        // Caso 3: sigue siendo operador -> actualizar personal
+        if (eraOperador && seraOperadorFinal) {
+          if (this.editUser.personalId) {
+            const updatedPersonal = await this.personalSrv.update(this.editUser.personalId, {
+              nombre: this.editUser.personalNombre || this.editUser.username,
+              apellidos: this.editUser.personalApellidos,
+              telefono: this.editUser.personalTelefono,
+              ruta: this.editUser.personalRutaId ?? null,
+            });
+
+            userRef.personal = updatedPersonal.data ?? updatedPersonal;
+          } else {
+            // Por si acaso no tenía personal pero ya era operador
             await this.ensurePersonalIfOperador(userRef, this.editUser.roleId, {
               nombre: this.editUser.personalNombre || this.editUser.username,
               apellidos: this.editUser.personalApellidos,
@@ -369,29 +390,8 @@ export class DashboardUsuariosPage implements OnInit {
               rutaId: this.editUser.personalRutaId ?? null,
             });
           }
-
-          // Caso 3: sigue siendo operador -> actualizar personal
-          if (eraOperador && seraOperador) {
-            if (this.editUser.personalId) {
-              const updatedPersonal = await this.personalSrv.update(this.editUser.personalId, {
-                nombre: this.editUser.personalNombre || this.editUser.username,
-                apellidos: this.editUser.personalApellidos,
-                telefono: this.editUser.personalTelefono,
-                ruta: this.editUser.personalRutaId ?? null,
-              });
-
-              userRef.personal = updatedPersonal.data ?? updatedPersonal;
-            } else {
-              // Por si acaso no tenía personal pero ya era operador
-              await this.ensurePersonalIfOperador(userRef, this.editUser.roleId, {
-                nombre: this.editUser.personalNombre || this.editUser.username,
-                apellidos: this.editUser.personalApellidos,
-                telefono: this.editUser.personalTelefono,
-                rutaId: this.editUser.personalRutaId ?? null,
-              });
-            }
-          }
         }
+      }
 
       this.presentToast('Usuario actualizado correctamente');
       this.closeEditModal();
@@ -401,7 +401,6 @@ export class DashboardUsuariosPage implements OnInit {
     }
   }
 
-  // Toast genérico
   private async presentToast(message: string) {
     const toast = await this.toastCtrl.create({
       message,

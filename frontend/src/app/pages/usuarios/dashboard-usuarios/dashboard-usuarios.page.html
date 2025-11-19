@@ -9,12 +9,14 @@
         Nuevo usuario
       </ion-button>
     </ion-buttons>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
 
-  <!-- Loader -->
   <ng-container *ngIf="loading; else contentTpl">
     <div class="ion-text-center ion-padding">
       <ion-spinner name="crescent"></ion-spinner>
@@ -158,7 +160,7 @@
             <ion-label position="stacked">Ruta (opcional)</ion-label>
             <ion-select [(ngModel)]="newUser.personalRutaId" interface="popover">
               <ion-select-option [value]="null">Sin ruta asignada</ion-select-option>
-              <ion-select-option *ngFor="let ruta of rutas" [value]="ruta.id">
+              <ion-select-option *ngFor="let ruta of rutas" [value]="ruta.documentId">
                 {{ getRutaNombre(ruta) }}
               </ion-select-option>
             </ion-select>
@@ -236,7 +238,7 @@
             <ion-label position="stacked">Ruta (opcional)</ion-label>
             <ion-select [(ngModel)]="editUser.personalRutaId" interface="popover">
               <ion-select-option [value]="null">Sin ruta asignada</ion-select-option>
-              <ion-select-option *ngFor="let ruta of rutas" [value]="ruta.id">
+              <ion-select-option *ngFor="let ruta of rutas" [value]="ruta.documentId">
                 {{ getRutaNombre(ruta) }}
               </ion-select-option>
             </ion-select>

@@ -1,7 +1,7 @@
 // src/app/services/usuarios.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
-import { environment } from 'src/environments/environment.prod'; 
+import { environment } from 'src/environments/environment.prod';
 
 const BASE_USERS = `${environment.apiUrl}/users`;
 const BASE_ROLES = `${environment.apiUrl}/users-permissions/roles`;
@@ -22,7 +22,7 @@ export class UsuariosService {
     const res = await axios.get(BASE_USERS, {
       params: {
         'populate[role]': true,
-        'populate[personal]': true,
+        'populate[personal][populate][ruta]': true,
         ...params,
       },
       headers: {
@@ -38,7 +38,7 @@ export class UsuariosService {
     const res = await axios.get(`${BASE_USERS}/${id}`, {
       params: {
         'populate[role]': true,
-        'populate[personal]': true,
+        'populate[personal][populate][ruta]': true, 
       },
       headers: {
         'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export class UsuariosService {
       }
     );
 
-    return res.data; // user creado
+    return res.data;
   }
 
 }

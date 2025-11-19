@@ -1,7 +1,7 @@
 // src/app/services/personal.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
-import { environment } from 'src/environments/environment.prod'; 
+import { environment } from 'src/environments/environment.prod';
 
 const BASE_PERSONAL = `${environment.apiUrl}/personals`;
 
@@ -17,13 +17,17 @@ export class PersonalService {
       : {};
   }
 
+  /**
+   * Crea un registro de personal a partir de un usuario.
+   * rutaId = documentId de la ruta (string) o null.
+   */
   async createFromUser(
     user: any,
     extra?: {
       nombre?: string;
       apellidos?: string;
       telefono?: string;
-      rutaId?: number | null;
+      rutaId?: string | null;  
     }
   ) {
     const payload = {
@@ -47,19 +51,22 @@ export class PersonalService {
       }
     );
 
-    return res.data; 
+    return res.data;
   }
 
-  async update(personalId: number, data: {
+  /**
+   * Actualizar personal existente.
+   */
+  async update(personalDocumentId: string, data: {
     nombre?: string;
     apellidos?: string;
     telefono?: string;
-    ruta?: number | null;
+    ruta?: string | null;   // documentId de ruta o null
   }) {
     const payload = { data };
 
     const res = await axios.put(
-      `${BASE_PERSONAL}/${personalId}`,
+      `${BASE_PERSONAL}/${personalDocumentId}`,   
       payload,
       {
         headers: {
@@ -72,9 +79,12 @@ export class PersonalService {
     return res.data;
   }
 
-  async delete(personalId: number) {
+  /**
+   * Eliminar personal por documentId.
+   */
+  async delete(personalDocumentId: string) {
     const res = await axios.delete(
-      `${BASE_PERSONAL}/${personalId}`,
+      `${BASE_PERSONAL}/${personalDocumentId}`,  
       {
         headers: {
           'Content-Type': 'application/json',
@@ -97,8 +107,6 @@ export class PersonalService {
     });
 
     const data = res.data.data ?? res.data;
-    return data; 
+    return data;
   }
-
-
 }

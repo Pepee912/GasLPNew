@@ -22,9 +22,9 @@
     },
     "ruta": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::ruta.ruta",
-      "inversedBy": "personal"
+      "inversedBy": "personals"
     },
     "users_permissions_user": {
       "type": "relation",

@@ -503,7 +503,7 @@ export interface ApiPersonalPersonal extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     nombre: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    ruta: Schema.Attribute.Relation<'oneToOne', 'api::ruta.ruta'>;
+    ruta: Schema.Attribute.Relation<'manyToOne', 'api::ruta.ruta'>;
     telefono: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -536,7 +536,7 @@ export interface ApiRutaRuta extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::ruta.ruta'> &
       Schema.Attribute.Private;
     nombre: Schema.Attribute.String & Schema.Attribute.Required;
-    personal: Schema.Attribute.Relation<'oneToOne', 'api::personal.personal'>;
+    personals: Schema.Attribute.Relation<'oneToMany', 'api::personal.personal'>;
     publishedAt: Schema.Attribute.DateTime;
     servicios: Schema.Attribute.Relation<'oneToMany', 'api::servicio.servicio'>;
     updatedAt: Schema.Attribute.DateTime;

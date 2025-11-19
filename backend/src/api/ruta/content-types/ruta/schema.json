@@ -26,9 +26,9 @@
       "target": "api::servicio.servicio",
       "mappedBy": "ruta"
     },
-    "personal": {
+    "personals": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::personal.personal",
       "mappedBy": "ruta"
     }

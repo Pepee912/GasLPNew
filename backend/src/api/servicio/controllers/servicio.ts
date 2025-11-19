@@ -335,7 +335,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
           documentId,
           filters: {
             ruta: {
-              personal: {
+              personals: {
                 users_permissions_user: {
                   id: { $eq: user.id },
                 },
