@@ -55,7 +55,6 @@ export class ServiciosService {
     return res.data;
   }
 
-  // 👉 NUEVO: listar servicios con filtros (find de Strapi)
   async list(params: any = {}) {
     const res = await axios.get(BASE, {
       params,
@@ -65,7 +64,6 @@ export class ServiciosService {
       },
     });
 
-    // Strapi normalmente devuelve { data: [], meta: {} }
     return res.data;
   }
 }

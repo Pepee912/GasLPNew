@@ -1,4 +1,3 @@
-// src/app/services/estado-servicio.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { environment } from 'src/environments/environment';
@@ -19,9 +18,19 @@ export class EstadoServicioService {
     return [];
   }
 
+  /**
+   * Listar estados de servicio (con servicios asociados)
+   * Puedes pasar filtros extra en params, por ejemplo:
+   *   { 'filters[estado][$eq]': true }  // solo activos
+   */
   async list(params: any = {}) {
     const res = await axios.get(BASE, {
-      params,
+      params: {
+        'pagination[pageSize]': 100,
+        'sort[0]': 'tipo:asc',
+        'populate[servicios]': true,   // 🔹 importante para contar servicios asociados
+        ...params,
+      },
       headers: {
         'Content-Type': 'application/json',
         ...this.getAuthHeaders(),
@@ -39,6 +48,7 @@ export class EstadoServicioService {
       params: {
         'filters[estado][$eq]': true,
         'sort[0]': 'tipo:asc',
+        'populate[servicios]': true,
       },
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +60,8 @@ export class EstadoServicioService {
   }
 
   /**
-   * Obtener un estado por su "tipo" (ej: 'Pendiente', 'En ruta', 'Surtido')
+   * Obtener un estado por su "tipo" (ej: 'Cancelado', 'Asignado', 'Surtido')
+   * Se mantiene igual para no romper la lógica donde lo uses.
    */
   async getByTipo(tipo: string) {
     const res = await axios.get(BASE, {
@@ -70,7 +81,7 @@ export class EstadoServicioService {
   }
 
   /**
-   * (Opcional) Crear un nuevo estado de servicio (por si lo manejas en un panel)
+   * Crear un nuevo estado de servicio
    */
   async create(data: any) {
     const res = await axios.post(
@@ -83,13 +94,11 @@ export class EstadoServicioService {
         },
       }
     );
-
-    // si quieres consistencia, puedes hacer return res.data.data;
     return res.data;
   }
 
   /**
-   * (Opcional) Actualizar un estado de servicio (activar/desactivar, cambiar nombre, etc.)
+   * Actualizar un estado de servicio por documentId
    */
   async update(documentId: string, data: any) {
     const res = await axios.put(
@@ -107,18 +116,29 @@ export class EstadoServicioService {
   }
 
   /**
-   * (Opcional) Eliminar un estado de servicio (si lo permites)
+   * Soft delete: desactivar => estado = false
+   */
+  async desactivar(documentId: string) {
+    return this.update(documentId, { estado: false });
+  }
+
+  /**
+   * Reactivar => estado = true
+   */
+  async reactivar(documentId: string) {
+    return this.update(documentId, { estado: true });
+  }
+
+  /**
+   * DELETE definitivo (no recomendado en tu caso, pero lo dejo por si lo requieres en otro contexto)
    */
   async delete(documentId: string) {
-    const res = await axios.delete(
-      `${BASE}/${documentId}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeaders(),
-        },
-      }
-    );
+    const res = await axios.delete(`${BASE}/${documentId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
     return res.data;
   }
 }

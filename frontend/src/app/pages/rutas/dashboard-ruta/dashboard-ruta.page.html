@@ -1,0 +1,165 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Rutas</ion-title>
+
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <!-- Búsqueda + botón nueva ruta -->
+  <div class="header-actions">
+    <ion-searchbar
+      placeholder="Buscar ruta por nombre"
+      [(ngModel)]="searchTerm"
+      debounce="300">
+    </ion-searchbar>
+
+    <ion-button (click)="openCreateModal()">
+      <ion-icon name="add-outline" slot="start"></ion-icon>
+      Nueva ruta
+    </ion-button>
+  </div>
+
+  <!-- Loading -->
+  <ion-spinner *ngIf="loading" name="crescent" class="center-spinner"></ion-spinner>
+
+  <!-- ========================= -->
+  <!-- LISTA DE RUTAS ACTIVAS -->
+  <!-- ========================= -->
+  <ion-list *ngIf="!loading && rutasActivasFiltradas.length">
+    <ion-list-header>
+      <ion-label>Rutas activas</ion-label>
+    </ion-list-header>
+
+    <ion-item *ngFor="let ruta of rutasActivasFiltradas">
+      <ion-label>
+        <h2>{{ ruta.nombre }}</h2>
+
+        <p *ngIf="ruta.personals?.length">
+          Operador:
+          {{ ruta.personals?.[0]?.nombre }} {{ ruta.personals?.[0]?.apellidos }}
+        </p>
+
+        <p>
+          Servicios asignados: {{ ruta.servicios?.length || 0 }}
+        </p>
+      </ion-label>
+
+      <ion-badge color="success" slot="end">Activa</ion-badge>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="openEditModal(ruta)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button fill="clear" color="danger" (click)="confirmSoftDelete(ruta)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  <!-- Estado vacío para activas -->
+  <div *ngIf="!loading && !rutasActivasFiltradas.length" class="empty-state">
+    <ion-icon name="map-outline"></ion-icon>
+    <p>No hay rutas activas.</p>
+  </div>
+
+  <!-- ============================= -->
+  <!-- LISTA DE RUTAS DESACTIVADAS -->
+  <!-- ============================= -->
+  <ion-list *ngIf="!loading && rutasInactivasFiltradas.length">
+    <ion-list-header>
+      <ion-label>Rutas desactivadas</ion-label>
+    </ion-list-header>
+
+    <ion-item *ngFor="let ruta of rutasInactivasFiltradas">
+      <ion-label>
+        <h2>{{ ruta.nombre }}</h2>
+
+        <p *ngIf="ruta.personals?.length">
+          Último operador:
+          {{ ruta.personals?.[0]?.nombre }} {{ ruta.personals?.[0]?.apellidos }}
+        </p>
+
+        <p>Servicios asignados (histórico): {{ ruta.servicios?.length || 0 }}</p>
+      </ion-label>
+
+      <ion-badge color="medium" slot="end">Inactiva</ion-badge>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="reactivateRuta(ruta)">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  <!-- Estado vacío para TODAS -->
+  <div *ngIf="!loading && !rutasActivasFiltradas.length && !rutasInactivasFiltradas.length" class="empty-state">
+    <ion-icon name="map-outline"></ion-icon>
+    <p>No hay rutas registradas.</p>
+
+    <ion-button fill="clear" (click)="openCreateModal()">
+      Crear la primera ruta
+    </ion-button>
+  </div>
+
+  <!-- ======================= -->
+  <!-- MODAL CREAR / EDITAR -->
+  <!-- ======================= -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>
+            {{ modalMode === 'create' ? 'Nueva ruta' : 'Editar ruta' }}
+          </ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <form [formGroup]="rutaForm" (ngSubmit)="saveRuta()">
+
+          <ion-item>
+            <ion-label position="stacked">Nombre de la ruta</ion-label>
+            <ion-input
+              formControlName="nombre"
+              placeholder="Ej. R37, R99, Ruta Centro...">
+            </ion-input>
+          </ion-item>
+
+          <ion-note color="danger" *ngIf="rutaForm.get('nombre')?.touched && rutaForm.get('nombre')?.invalid">
+            El nombre es obligatorio y debe tener mínimo 2 caracteres.
+          </ion-note>
+
+          <ion-item *ngIf="modalMode === 'edit'">
+            <ion-label>Ruta activa</ion-label>
+            <ion-toggle formControlName="estado"></ion-toggle>
+          </ion-item>
+
+          <div class="modal-actions">
+            <ion-button fill="outline" type="button" (click)="closeModal()">
+              Cancelar
+            </ion-button>
+
+            <ion-button type="submit" [disabled]="rutaForm.invalid">
+              {{ modalMode === 'create' ? 'Crear' : 'Guardar cambios' }}
+            </ion-button>
+          </div>
+
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

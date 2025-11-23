@@ -1,0 +1,137 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/clientes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Estados de servicio</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModalCrear()">
+        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Estados de servicio</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Segmento Activos / Desactivados -->
+  <ion-segment [(ngModel)]="segment" (ionChange)="onSegmentChange($event)" class="ion-padding-horizontal">
+    <ion-segment-button value="activos">
+      <ion-label>Activos</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="inactivos">
+      <ion-label>Desactivados</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <ion-progress-bar *ngIf="loading" type="indeterminate"></ion-progress-bar>
+
+  <!-- Lista de Activos -->
+  <ng-container *ngIf="segment === 'activos'">
+    <ion-list *ngIf="estadosActivos.length; else noActivos" class="ion-margin-top">
+      <ion-item *ngFor="let estado of estadosActivos">
+        <ion-label>
+          <h2>{{ estado.tipo }}</h2>
+          <p>Servicios asociados: {{ estado.servicios?.length || 0 }}</p>
+        </ion-label>
+
+        <ion-button fill="clear" (click)="abrirModalEditar(estado)">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button
+          fill="clear"
+          color="danger"
+          (click)="confirmarDesactivar(estado)"
+        >
+          <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+
+    <ng-template #noActivos>
+      <div class="ion-text-center ion-margin-top">
+        <p>No hay estados de servicio activos.</p>
+      </div>
+    </ng-template>
+  </ng-container>
+
+  <!-- Lista de Desactivados -->
+  <ng-container *ngIf="segment === 'inactivos'">
+    <ion-list *ngIf="estadosInactivos.length; else noInactivos" class="ion-margin-top">
+      <ion-item *ngFor="let estado of estadosInactivos">
+        <ion-label>
+          <h2>{{ estado.tipo }}</h2>
+          <p>Estado: Desactivado</p>
+          <p>Servicios asociados: {{ estado.servicios?.length || 0 }}</p>
+        </ion-label>
+
+        <ion-button fill="clear" color="success" (click)="confirmarReactivar(estado)">
+          <ion-icon slot="icon-only" name="refresh-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+
+    <ng-template #noInactivos>
+      <div class="ion-text-center ion-margin-top">
+        <p>No hay estados de servicio desactivados.</p>
+      </div>
+    </ng-template>
+  </ng-container>
+
+  <!-- Modal Crear / Editar -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>
+            {{ modo === 'crear' ? 'Nuevo estado de servicio' : 'Editar estado de servicio' }}
+          </ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModal()">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <form [formGroup]="estadoForm" (ngSubmit)="guardar()">
+          <ion-item>
+            <ion-label position="stacked">Tipo</ion-label>
+            <ion-input
+              formControlName="tipo"
+              type="text"
+              autocomplete="off"
+            ></ion-input>
+          </ion-item>
+          <ion-note
+            color="danger"
+            *ngIf="estadoForm.get('tipo')?.touched && estadoForm.get('tipo')?.invalid"
+          >
+            El tipo es obligatorio.
+          </ion-note>
+
+          <div class="ion-margin-top ion-text-right">
+            <ion-button type="button" fill="outline" (click)="cerrarModal()">
+              Cancelar
+            </ion-button>
+            <ion-button type="submit">
+              {{ modo === 'crear' ? 'Crear' : 'Guardar' }}
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

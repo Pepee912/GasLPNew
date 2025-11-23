@@ -17,6 +17,9 @@ export class DashboardPage implements OnInit {
   canViewClientes  = false;
   canViewUsuarios  = false;
   canViewServicios = false;
+  canViewRutas     = false;
+  canViewTipoServicio = false;
+  canViewEstadoServicio = false;
 
   constructor(private router: Router) {}
 
@@ -38,20 +41,10 @@ export class DashboardPage implements OnInit {
 
       const rawRole = roleType || roleName;
 
-      // console.log('role.name:', roleName);
-      // console.log('role.type:', roleType);
-      // console.log('Rol normalizado para lógica:', rawRole);
-
       this.userRoleLabel = this.user.role?.name || 'Usuario';
 
       // Permisos según rol
       this.setPermissions(rawRole);
-
-      console.log('Permisos:', {
-        clientes: this.canViewClientes,
-        usuarios: this.canViewUsuarios,
-        servicios: this.canViewServicios,
-      });
 
     } catch (err) {
       console.error('Error parseando user de localStorage', err);
@@ -62,22 +55,25 @@ export class DashboardPage implements OnInit {
     const role = rawRole.trim().toLowerCase();
 
     // Administrador
-    if (role === 'administrador' || role === 'admin') {
+    if (role === 'administrador') {
       this.canViewClientes  = true;
       this.canViewUsuarios  = true;
       this.canViewServicios = true;
+      this.canViewRutas     = true;
+      this.canViewTipoServicio = true;
+      this.canViewEstadoServicio = true;
       return;
     }
 
     // Callcenter
-    if (role === 'callcenter' || role === 'call center') {
+    if (role === 'callcenter') {
       this.canViewClientes  = true;
       this.canViewServicios = true;
       return;
     }
 
     // Operador
-    if (role === 'operador' || role === 'operator' || role === 'operario') {
+    if (role === 'operador') {
       this.canViewServicios = true;
       return;
     }
@@ -98,6 +94,18 @@ export class DashboardPage implements OnInit {
 
   goServicios() {
     this.router.navigateByUrl('/dashboard-servicios');
+  }
+
+  goRutas() {
+    this.router.navigateByUrl('/dashboard-ruta');
+  }
+
+  goTipoServicio() {
+    this.router.navigateByUrl('/tipo-servicio');
+  }
+
+  goEstadoServicio() {
+    this.router.navigateByUrl('/estado-servicio');
   }
 
   logout() {

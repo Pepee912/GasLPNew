@@ -81,6 +81,51 @@
           </p>
           <span class="module-link">Ir a Servicios</span>
         </div>
+
+      <!-- RUTAS -->
+        <div
+          class="module-card module-servicios"
+          *ngIf="canViewRutas"
+          (click)="goRutas()">
+          <div class="module-icon">
+            <ion-icon name="flame-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Rutas</h2>
+          <p class="module-text">
+            Revisa y da seguimiento a las Rutas.
+          </p>
+          <span class="module-link">Ir a Rutas</span>
+        </div>
+
+      <!-- TIPO-SERVICIO -->
+        <div
+          class="module-card module-servicios"
+          *ngIf="canViewTipoServicio"
+          (click)="goTipoServicio()">
+          <div class="module-icon">
+            <ion-icon name="flame-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Tipo-Servicio</h2>
+          <p class="module-text">
+            Revisa y da seguimiento a los tipos de servicio.
+          </p>
+          <span class="module-link">Ir a Rutas</span>
+        </div>
+
+      <!-- ESTADO-SERVICIO -->
+        <div
+          class="module-card module-servicios"
+          *ngIf="canViewEstadoServicio"
+          (click)="goEstadoServicio()">
+          <div class="module-icon">
+            <ion-icon name="flame-outline"></ion-icon>
+          </div>
+          <h2 class="module-title">Estado-Servicio</h2>
+          <p class="module-text">
+            Revisa y da seguimiento a los estados de los servicios.
+          </p>
+          <span class="module-link">Ir a Rutas</span>
+        </div>
       </div>
 
       <!-- Mensaje si no tiene módulos asignados -->

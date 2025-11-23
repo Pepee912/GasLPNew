@@ -50,6 +50,18 @@ const routes: Routes = [
     path: 'dashboard-servicios',
     loadChildren: () => import('./pages/servicios/dashboard-servicios/dashboard-servicios.module').then( m => m.DashboardServiciosPageModule)
   },
+  {
+    path: 'dashboard-ruta',
+    loadChildren: () => import('./pages/rutas/dashboard-ruta/dashboard-ruta.module').then( m => m.DashboardRutaPageModule)
+  },
+  {
+    path: 'tipo-servicio',
+    loadChildren: () => import('./pages/tipo-servicio/tipo-servicio/tipo-servicio.module').then( m => m.TipoServicioPageModule)
+  },
+  {
+    path: 'estado-servicio',
+    loadChildren: () => import('./pages/estado-servicio/estado-servicio/estado-servicio.module').then( m => m.EstadoServicioPageModule)
+  },
 ];
 
 @NgModule({
