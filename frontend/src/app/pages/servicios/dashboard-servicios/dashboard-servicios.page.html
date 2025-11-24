@@ -121,7 +121,7 @@
     <ion-item *ngFor="let servicio of serviciosFiltrados" lines="inset">
 
       <ion-label>
-        <!-- Título: cliente para admin/callcenter, tipo para operador -->
+        <!-- Título: cliente para admin/callcenter, algo neutro para operador -->
         <h2>{{ getTituloServicio(servicio) }}</h2>
 
         <p>
@@ -142,12 +142,6 @@
         <p>
           <strong>Estado actual:</strong>
           {{ getEstadoNombre(servicio) }}
-        </p>
-
-        <!-- Nota del operador (si existe) -->
-        <p *ngIf="servicio.nota_operador">
-          <strong>Nota del operador:</strong>
-          {{ servicio.nota_operador }}
         </p>
 
         <!-- ================= Selector de estado ================= -->

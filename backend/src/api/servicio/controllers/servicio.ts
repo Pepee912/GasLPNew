@@ -1,3 +1,4 @@
+// src/api/servicio/controllers/servicio.ts
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::servicio.servicio', ({ strapi }) => ({
@@ -37,7 +38,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
         filters = {
           ruta: {
             documentId: { $eq: rutaDocumentId },
-            personal: {
+            personals: {
               users_permissions_user: {
                 id: { $eq: user.id },
               },
@@ -105,7 +106,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
         filters = {
           ...baseFilters,
           ruta: {
-            personal: {
+            personals: {
               users_permissions_user: {
                 id: { $eq: user.id },
               },
@@ -162,7 +163,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
         },
         filters: {
           ruta: {
-            personal: {
+            personals: {
               users_permissions_user: {
                 id: { $eq: user.id },
               },

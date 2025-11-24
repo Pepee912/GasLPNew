@@ -1,6 +1,83 @@
+<!-- Menú lateral -->
+<ion-menu side="start" menuId="main-menu" contentId="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Menú</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-list>
+
+      <ion-list-header>
+        <ion-label>Opciones</ion-label>
+      </ion-list-header>
+
+      <!-- SERVICIOS (vista actual) -->
+      <ion-menu-toggle auto-hide="true" *ngIf="canViewServicios">
+        <ion-item button (click)="goServicios()">
+          <ion-icon name="flame-outline" slot="start"></ion-icon>
+          <ion-label>Servicios</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <!-- CLIENTES -->
+      <ion-menu-toggle auto-hide="true" *ngIf="canViewClientes">
+        <ion-item button (click)="goClientes()">
+          <ion-icon name="people-outline" slot="start"></ion-icon>
+          <ion-label>Clientes</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <!-- USUARIOS (solo admin) -->
+      <ion-menu-toggle auto-hide="true" *ngIf="canViewUsuarios">
+        <ion-item button (click)="goUsuarios()">
+          <ion-icon name="person-add-outline" slot="start"></ion-icon>
+          <ion-label>Usuarios</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <!-- RUTAS -->
+      <ion-menu-toggle auto-hide="true" *ngIf="canViewRutas">
+        <ion-item button (click)="goRutas()">
+          <ion-icon name="map-outline" slot="start"></ion-icon>
+          <ion-label>Rutas</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <!-- TIPO SERVICIO -->
+      <ion-menu-toggle auto-hide="true" *ngIf="canViewTipoServicio">
+        <ion-item button (click)="goTipoServicio()">
+          <ion-icon name="pricetag-outline" slot="start"></ion-icon>
+          <ion-label>Tipo de servicio</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <!-- ESTADO SERVICIO -->
+      <ion-menu-toggle auto-hide="true" *ngIf="canViewEstadoServicio">
+        <ion-item button (click)="goEstadoServicio()">
+          <ion-icon name="checkbox-outline" slot="start"></ion-icon>
+          <ion-label>Estado de servicio</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <ion-item lines="full" button (click)="logout()">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        <ion-label>Cerrar sesión</ion-label>
+      </ion-item>
+
+    </ion-list>
+  </ion-content>
+</ion-menu>
+
+<!-- Contenido principal -->
 <ion-header [translucent]="true" class="dashboard-header">
   <ion-toolbar>
-    <ion-title>Panel principal</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="main-menu"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Servicios</ion-title>
 
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="logout()">
@@ -9,18 +86,40 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Segmento Hoy / Todos -->
+  <ion-toolbar>
+    <ion-segment [value]="vista" (ionChange)="onVistaChange($event)">
+      <ion-segment-button value="hoy">
+        <ion-label>Hoy</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="todos">
+        <ion-label>Todos</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="dashboard-background">
+<ion-content [fullscreen]="true" id="main-content" class="dashboard-background">
+
+  <!-- Refresher -->
+  <ion-refresher
+    slot="fixed"
+    (ionRefresh)="vista === 'hoy' ? loadServiciosHoy($event) : loadServiciosTodos($event)">
+    <ion-refresher-content
+      pullingText="Desliza para actualizar"
+      refreshingSpinner="circles">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Tarjeta principal -->
   <div class="dashboard-wrapper">
     <div class="dashboard-card">
-      <!-- Encabezado -->
       <div class="dashboard-top">
         <div>
-          <!-- <p class="app-name">ACUPAZ GAS</p> -->
-          <h1 class="dashboard-title">Dashboard</h1>
+          <h1 class="dashboard-title">Servicios</h1>
           <p class="dashboard-subtitle">
-            Selecciona una sección para gestionar la información del sistema.
+            Consulta, filtra y actualiza los servicios de gas.
           </p>
         </div>
 
@@ -34,106 +133,194 @@
         </div>
       </div>
 
-      <!-- Grid de módulos -->
-      <div class="dashboard-grid">
+      <!-- ================= Filtros superiores ================= -->
+      <div
+        class="filtros-container ion-padding-horizontal ion-padding-top"
+        *ngIf="!loading && !errorMessage && servicios.length > 0">
 
-        <!-- USUARIOS -->
-        <div
-          class="module-card module-usuarios"
-          *ngIf="canViewUsuarios"
-          (click)="goUsuarios()">
-          <div class="module-icon">
-            <ion-icon name="person-add-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Usuarios</h2>
-          <p class="module-text">
-            Administra cuentas y permisos del personal del sistema.
-          </p>
-          <span class="module-link">Ir a Usuarios</span>
-        </div>
-        
-        <!-- CLIENTES -->
-        <div
-          class="module-card module-clientes"
-          *ngIf="canViewClientes"
-          (click)="goClientes()">
-          <div class="module-icon">
-            <ion-icon name="people-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Clientes</h2>
-          <p class="module-text">
-            Consulta, registra y actualiza la información de los clientes.
-          </p>
-          <span class="module-link">Ir a Clientes</span>
-        </div>
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          [placeholder]="isOperador
+            ? 'Buscar por dirección o tipo de servicio'
+            : 'Buscar por cliente, teléfono o dirección'"
+          debounce="400">
+        </ion-searchbar>
 
-        <!-- SERVICIOS -->
-        <div
-          class="module-card module-servicios"
-          *ngIf="canViewServicios"
-          (click)="goServicios()">
-          <div class="module-icon">
-            <ion-icon name="flame-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Servicios</h2>
-          <p class="module-text">
-            Revisa, asigna y da seguimiento a los servicios de gas.
-          </p>
-          <span class="module-link">Ir a Servicios</span>
-        </div>
-
-      <!-- RUTAS -->
-        <div
-          class="module-card module-servicios"
-          *ngIf="canViewRutas"
-          (click)="goRutas()">
-          <div class="module-icon">
-            <ion-icon name="flame-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Rutas</h2>
-          <p class="module-text">
-            Revisa y da seguimiento a las Rutas.
-          </p>
-          <span class="module-link">Ir a Rutas</span>
-        </div>
-
-      <!-- TIPO-SERVICIO -->
-        <div
-          class="module-card module-servicios"
-          *ngIf="canViewTipoServicio"
-          (click)="goTipoServicio()">
-          <div class="module-icon">
-            <ion-icon name="flame-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Tipo-Servicio</h2>
-          <p class="module-text">
-            Revisa y da seguimiento a los tipos de servicio.
-          </p>
-          <span class="module-link">Ir a Rutas</span>
-        </div>
-
-      <!-- ESTADO-SERVICIO -->
-        <div
-          class="module-card module-servicios"
-          *ngIf="canViewEstadoServicio"
-          (click)="goEstadoServicio()">
-          <div class="module-icon">
-            <ion-icon name="flame-outline"></ion-icon>
-          </div>
-          <h2 class="module-title">Estado-Servicio</h2>
-          <p class="module-text">
-            Revisa y da seguimiento a los estados de los servicios.
-          </p>
-          <span class="module-link">Ir a Rutas</span>
-        </div>
+        <ion-item lines="none">
+          <ion-label>Filtrar por estado</ion-label>
+          <ion-select [(ngModel)]="filtroEstado">
+            <ion-select-option value="todos">Todos</ion-select-option>
+            <ion-select-option
+              *ngFor="let estado of estados"
+              [value]="estado.tipo">
+              {{ estado.tipo }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
       </div>
 
-      <!-- Mensaje si no tiene módulos asignados -->
-      <p
-        *ngIf="!canViewClientes && !canViewUsuarios && !canViewServicios"
-        style="margin-top:16px; font-size:0.85rem; color:#9ca3af;">
-        No tienes módulos asignados para tu rol actual.
-      </p>
+      <!-- ================= Skeleton loading ================= -->
+      <ng-container *ngIf="loading">
+        <ion-list>
+          <ion-item *ngFor="let item of [1,2,3,4]">
+            <ion-label>
+              <h2>
+                <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+              </h2>
+              <p>
+                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+              </p>
+              <p>
+                <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+              </p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ng-container>
+
+      <!-- ================= Error ================= -->
+      <ng-container *ngIf="!loading && errorMessage">
+        <ion-text color="danger" class="ion-padding">
+          <p>{{ errorMessage }}</p>
+        </ion-text>
+      </ng-container>
+
+      <!-- ================= Sin servicios ================= -->
+      <ng-container *ngIf="!loading && !errorMessage && servicios.length === 0">
+        <ion-item lines="none">
+          <ion-label class="ion-text-center ion-padding">
+            <h2>No hay servicios para mostrar.</h2>
+            <p>
+              {{ vista === 'hoy'
+                ? 'Cuando se registren servicios para la fecha actual aparecerán aquí.'
+                : 'Todavía no hay servicios registrados.' }}
+            </p>
+          </ion-label>
+        </ion-item>
+      </ng-container>
+
+      <!-- ================= Sin resultados (después de filtros) ================= -->
+      <ng-container
+        *ngIf="!loading && !errorMessage && servicios.length > 0 && serviciosFiltrados.length === 0">
+        <ion-item lines="none">
+          <ion-label class="ion-text-center ion-padding">
+            <h2>Sin resultados</h2>
+            <p>Prueba cambiando los filtros o la búsqueda.</p>
+          </ion-label>
+        </ion-item>
+      </ng-container>
+
+      <!-- ================= Lista de servicios ================= -->
+      <div *ngIf="!loading && !errorMessage && serviciosFiltrados.length > 0" class="servicios-list">
+        <ion-card *ngFor="let servicio of serviciosFiltrados" class="servicio-card">
+
+          <!-- Encabezado de la tarjeta -->
+          <ion-card-header class="servicio-header">
+            <div class="servicio-header-main">
+              <ion-icon name="flame-outline" class="servicio-icon"></ion-icon>
+              <div>
+                <!-- Título: cliente (admin/callcenter) o tipo (operador) -->
+                <ion-card-title>{{ getTituloServicio(servicio) }}</ion-card-title>
+
+                <!-- Subtítulo: solo para admin/callcenter mostramos cliente -->
+                <ion-card-subtitle *ngIf="!isOperador">
+                  Cliente: {{ getNombreCliente(servicio) }}
+                </ion-card-subtitle>
+              </div>
+            </div>
+
+            <div class="servicio-header-right">
+              <ion-badge [color]="getEstadoColor(servicio)">
+                {{ getEstadoNombre(servicio) }}
+              </ion-badge>
+
+              <ion-spinner
+                *ngIf="updatingId === (servicio.documentId || servicio.id)"
+                class="servicio-spinner">
+              </ion-spinner>
+            </div>
+          </ion-card-header>
+
+          <!-- Contenido principal -->
+          <ion-card-content class="servicio-content">
+            <!-- Dirección -->
+            <div class="servicio-row">
+              <ion-icon name="location-outline"></ion-icon>
+              <div>
+                <p class="servicio-label">Dirección</p>
+                <p class="servicio-value">{{ getDireccion(servicio) }}</p>
+              </div>
+            </div>
+
+            <!-- Ruta y hora programada -->
+            <div class="servicio-row two-cols">
+              <div class="servicio-col">
+                <ion-icon name="map-outline"></ion-icon>
+                <div>
+                  <p class="servicio-label">Ruta</p>
+                  <p class="servicio-value">{{ getRutaNombre(servicio) }}</p>
+                </div>
+              </div>
+
+              <div class="servicio-col">
+                <ion-icon name="time-outline"></ion-icon>
+                <div>
+                  <p class="servicio-label">Hora programada</p>
+                  <p class="servicio-value">{{ getHoraProgramado(servicio) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tipo de servicio y teléfono (solo admin/callcenter) -->
+            <div class="servicio-row two-cols">
+              <div class="servicio-col">
+                <ion-icon name="pricetag-outline"></ion-icon>
+                <div>
+                  <p class="servicio-label">Tipo de servicio</p>
+                  <p class="servicio-value">{{ getTipoServicio(servicio) }}</p>
+                </div>
+              </div>
+
+              <div class="servicio-col" *ngIf="!isOperador">
+                <ion-icon name="call-outline"></ion-icon>
+                <div>
+                  <p class="servicio-label">Teléfono</p>
+                  <p class="servicio-value">{{ getTelefonoCliente(servicio) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nota del operador (si existe) -->
+            <div class="servicio-row" *ngIf="servicio.nota_operador">
+              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <div>
+                <p class="servicio-label">Nota del operador</p>
+                <p class="servicio-value">{{ servicio.nota_operador }}</p>
+              </div>
+            </div>
+
+            <!-- Actualizar estado -->
+            <div class="servicio-footer">
+              <ion-item lines="none" class="servicio-estado-item">
+                <ion-label>Actualizar estado</ion-label>
+
+                <ion-select
+                  interface="popover"
+                  [value]="getEstadoSeleccionado(servicio)"
+                  (ionChange)="onEstadoChange(servicio, $event)"
+                  [disabled]="updatingId === (servicio.documentId || servicio.id)">
+
+                  <ion-select-option
+                    *ngFor="let estado of estadosParaSelect"
+                    [value]="estado.documentId || estado.id">
+                    {{ estado.tipo }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
     </div>
   </div>
 </ion-content>

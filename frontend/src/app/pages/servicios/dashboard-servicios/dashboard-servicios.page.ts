@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ToastController, AlertController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 import { ServiciosService } from 'src/app/services/servicios';
 import { EstadoServicioService } from 'src/app/services/estado-servicio';
 
@@ -31,8 +31,7 @@ export class DashboardServiciosPage implements OnInit {
   constructor(
     private serviciosService: ServiciosService,
     private estadoServicioService: EstadoServicioService,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private toastCtrl: ToastController
   ) {}
 
   async ngOnInit() {
@@ -186,6 +185,7 @@ export class DashboardServiciosPage implements OnInit {
   /** Título principal de la tarjeta */
   getTituloServicio(servicio: any): string {
     if (this.isOperador) {
+      // Para operador mostramos algo neutro
       const tipo = this.getTipoServicio(servicio);
       return tipo !== 'Sin tipo' ? tipo : 'Servicio de gas';
     }
@@ -286,43 +286,6 @@ export class DashboardServiciosPage implements OnInit {
     return lista;
   }
 
-  // ==================== Nota del operador ====================
-  private async pedirNotaSurtido(): Promise<string | null> {
-    const alert = await this.alertCtrl.create({
-      header: 'Nota del operador',
-      message: '¿Deseas agregar una nota sobre la entrega? (opcional)',
-      inputs: [
-        {
-          name: 'nota',
-          type: 'textarea',
-          placeholder: 'Ej. Cliente no estaba en casa, tanque dañado, etc.',
-        },
-      ],
-      buttons: [
-        {
-          text: 'Omitir',
-          role: 'cancel',
-        },
-        {
-          text: 'Guardar',
-          role: 'confirm',
-        },
-      ],
-      mode: 'ios',
-    });
-
-    await alert.present();
-    const result = await alert.onDidDismiss();
-
-    if (result.role === 'confirm') {
-      const nota = result.data?.values?.nota ?? '';
-      const trimmed = (nota || '').trim();
-      return trimmed || null;
-    }
-
-    return null;
-  }
-
   // ==================== Cambio de estado ====================
   async onEstadoChange(servicio: any, event: any) {
     const nuevoEstadoKey = event.detail.value;
@@ -346,25 +309,11 @@ export class DashboardServiciosPage implements OnInit {
     this.updatingId = servicioId;
 
     try {
-      const payload: any = {
+      await this.serviciosService.update(servicioId, {
         estado_servicio: estadoKey,
-      };
+      });
 
-      // Si es operador y marca Surtido → pedir nota_operador (opcional)
-      if (this.isOperador && nuevoEstado.tipo === 'Surtido') {
-        const nota = await this.pedirNotaSurtido();
-        if (nota) {
-          payload.nota_operador = nota;
-        }
-      }
-
-      await this.serviciosService.update(servicioId, payload);
-
-      // Actualizamos en memoria
       servicio.estado_servicio = nuevoEstado;
-      if (payload.nota_operador) {
-        servicio.nota_operador = payload.nota_operador;
-      }
 
       const toast = await this.toastCtrl.create({
         message: `Estado actualizado a "${nuevoEstado.tipo}"`,
