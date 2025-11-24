@@ -139,7 +139,7 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
     return serviciosHoy;
   },
 
-  // ===================== GET /servicios (listado general) =====================
+  // ===================== GET /servicios (listado general con filtros + paginado) =====================
   async find(ctx) {
     const user = ctx.state?.user;
 
@@ -150,34 +150,123 @@ export default factories.createCoreController('api::servicio.servicio', ({ strap
 
     const { isOperador } = this.getRoleFlags(user);
 
+    // Copiamos la query actual
+    const query: any = ctx.query || {};
+    const filters: any = query.filters ? { ...query.filters } : {};
+
+    // --------- 1) Filtros por fecha ---------
+    const dia = (query.dia || '').toString().toLowerCase(); // 'hoy' | 'ayer'
+    const fecha = query.fecha as string | undefined;         // 'YYYY-MM-DD'
+    const fechaDesde = query.fecha_desde as string | undefined;
+    const fechaHasta = query.fecha_hasta as string | undefined;
+
+    let start: Date | null = null;
+    let end: Date | null = null;
+
+    if (dia === 'hoy' || dia === 'ayer') {
+      const base = new Date();
+      base.setHours(0, 0, 0, 0);
+
+      if (dia === 'hoy') {
+        start = base;
+        end = new Date(base);
+        end.setDate(base.getDate() + 1);
+      } else {
+        // ayer
+        end = base;
+        start = new Date(base);
+        start.setDate(base.getDate() - 1);
+      }
+    } else if (fecha) {
+      // Día exacto
+      const d = new Date(fecha);
+      d.setHours(0, 0, 0, 0);
+      start = d;
+      end = new Date(d);
+      end.setDate(d.getDate() + 1);
+    } else if (fechaDesde && fechaHasta) {
+      const d1 = new Date(fechaDesde);
+      const d2 = new Date(fechaHasta);
+      d1.setHours(0, 0, 0, 0);
+      d2.setHours(0, 0, 0, 0);
+      start = d1;
+      end = new Date(d2);
+      end.setDate(d2.getDate() + 1);
+    }
+
+    if (start && end) {
+      filters.fecha_programado = {
+        $gte: start.toISOString(),
+        $lt: end.toISOString(),
+      };
+    }
+
+    // --------- 2) Filtro por ruta ---------
+    const rutaDocumentId = query.rutaDocumentId as string | undefined;
+    if (rutaDocumentId) {
+      filters.ruta = {
+        ...(filters.ruta || {}),
+        documentId: { $eq: rutaDocumentId },
+      };
+    }
+
+    // --------- 3) Filtro por estado_servicio (campo "tipo") ---------
+    const estado = query.estado as string | undefined; // Ej. Programado, Asignado...
+    if (estado) {
+      filters.estado_servicio = {
+        ...(filters.estado_servicio || {}),
+        tipo: { $eq: estado },
+      };
+    }
+
+    // --------- 4) Filtro por tipo_servicio (campo "nombre") ---------
+    const tipo = query.tipo as string | undefined;
+    if (tipo) {
+      filters.tipo_servicio = {
+        ...(filters.tipo_servicio || {}),
+        nombre: { $eq: tipo },
+      };
+    }
+
+    // --------- 5) Restricción por rol (Operador vs Admin/Callcenter) ---------
+    let finalFilters: any = filters;
+    let populate: any;
+
     if (isOperador) {
-      // Operador: solo servicios de su ruta (cualquier día)
-      ctx.query = {
-        ...ctx.query,
-        populate: {
-          domicilio: true,
-          estado_servicio: true,
-          tipo_servicio: true,
-          cliente: true,
-          ruta: true,
-        },
-        filters: {
-          ruta: {
-            personals: {
-              users_permissions_user: {
-                id: { $eq: user.id },
-              },
-            },
+      // Operador → solo servicios de rutas donde él es el usuario
+      const rutaFilter = {
+        ...(filters.ruta || {}),
+        personals: {
+          users_permissions_user: {
+            id: { $eq: user.id },
           },
         },
       };
-    } else {
-      // Admin / Callcenter: todo con populate completo
-      ctx.query = {
-        ...ctx.query,
-        populate: '*',
+
+      finalFilters = {
+        ...filters,
+        ruta: rutaFilter,
       };
+
+      populate = {
+        domicilio: true,
+        estado_servicio: true,
+        tipo_servicio: true,
+        cliente: true,
+        ruta: true,
+      };
+    } else {
+      // Admin / Callcenter → todos los servicios (con los filtros aplicados)
+      populate = '*';
     }
+
+    // --------- 6) Actualizamos ctx.query y dejamos que Strapi haga paginado ---------
+    ctx.query = {
+      ...ctx.query,
+      filters: finalFilters,
+      populate,
+      // sort y pagination ya vienen desde el frontend como sort[0], pagination[...], etc.
+    };
 
     return await super.find(ctx);
   },

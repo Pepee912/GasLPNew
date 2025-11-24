@@ -70,7 +70,7 @@
   </ion-content>
 </ion-menu>
 
-<!-- Contenido principal -->
+<!-- Encabezado -->
 <ion-header [translucent]="true" class="dashboard-header">
   <ion-toolbar>
     <ion-buttons slot="start">
@@ -100,6 +100,7 @@
   </ion-toolbar>
 </ion-header>
 
+<!-- Contenido principal -->
 <ion-content [fullscreen]="true" id="main-content" class="dashboard-background">
 
   <!-- Refresher -->
@@ -112,7 +113,6 @@
     </ion-refresher-content>
   </ion-refresher>
 
-  <!-- Tarjeta principal -->
   <div class="dashboard-wrapper">
     <div class="dashboard-card">
       <div class="dashboard-top">
@@ -138,6 +138,7 @@
         class="filtros-container ion-padding-horizontal ion-padding-top"
         *ngIf="!loading && !errorMessage && servicios.length > 0">
 
+        <!-- Búsqueda en memoria -->
         <ion-searchbar
           [(ngModel)]="searchTerm"
           [placeholder]="isOperador
@@ -146,16 +147,84 @@
           debounce="400">
         </ion-searchbar>
 
-        <ion-item lines="none">
-          <ion-label>Filtrar por estado</ion-label>
-          <ion-select [(ngModel)]="filtroEstado">
-            <ion-select-option value="todos">Todos</ion-select-option>
-            <ion-select-option
-              *ngFor="let estado of estados"
-              [value]="estado.tipo">
-              {{ estado.tipo }}
-            </ion-select-option>
-          </ion-select>
+        <!-- Primera fila de filtros -->
+        <div class="filtros-row">
+
+          <!-- Filtro por ruta (solo admin / callcenter) -->
+          <ion-item lines="none" *ngIf="!isOperador" class="filtro-item">
+            <ion-label>Ruta</ion-label>
+            <ion-select
+              [(ngModel)]="selectedRutaId"
+              (ionChange)="onFiltersChange()"
+              placeholder="Todas">
+              <ion-select-option [value]="null">Todas</ion-select-option>
+              <ion-select-option
+                *ngFor="let ruta of rutas"
+                [value]="ruta.documentId || ruta.id">
+                {{ ruta.nombre }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Filtro por estado -->
+          <ion-item lines="none" class="filtro-item">
+            <ion-label>Estado</ion-label>
+            <ion-select
+              [(ngModel)]="filtroEstado"
+              (ionChange)="onFiltersChange()">
+              <ion-select-option value="todos">Todos</ion-select-option>
+              <ion-select-option
+                *ngFor="let estado of estados"
+                [value]="estado.tipo">
+                {{ estado.tipo }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <!-- Segunda fila de filtros -->
+        <div class="filtros-row">
+
+          <!-- Filtro por tipo de servicio -->
+          <ion-item lines="none" class="filtro-item">
+            <ion-label>Tipo</ion-label>
+            <ion-select
+              [(ngModel)]="selectedTipoServicio"
+              (ionChange)="onFiltersChange()"
+              placeholder="Todos">
+              <ion-select-option [value]="null">Todos</ion-select-option>
+              <ion-select-option
+                *ngFor="let tipo of tiposServicio"
+                [value]="tipo.nombre">
+                {{ tipo.nombre }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Filtro de día (solo en vista "todos") -->
+          <ion-item lines="none" class="filtro-item" *ngIf="vista === 'todos'">
+            <ion-label>Día</ion-label>
+            <ion-select
+              [(ngModel)]="dateFilterMode"
+              (ionChange)="onFiltersChange()">
+              <ion-select-option value="todos">Todos</ion-select-option>
+              <ion-select-option value="hoy">Hoy</ion-select-option>
+              <ion-select-option value="ayer">Ayer</ion-select-option>
+              <ion-select-option value="fecha">Fecha específica</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <!-- Fecha específica -->
+        <ion-item
+          lines="none"
+          *ngIf="vista === 'todos' && dateFilterMode === 'fecha'">
+          <ion-label>Selecciona fecha</ion-label>
+          <ion-datetime
+            presentation="date"
+            [(ngModel)]="selectedFecha"
+            (ionChange)="onFiltersChange()">
+          </ion-datetime>
         </ion-item>
       </div>
 
@@ -321,6 +390,37 @@
           </ion-card-content>
         </ion-card>
       </div>
+
+      <!-- ================= Paginación ================= -->
+      <div
+        *ngIf="!loading && !errorMessage && total > 0"
+        class="paginacion-container ion-padding">
+
+        <div class="paginacion-info">
+          <span>Página {{ page }} de {{ pageCount }}</span>
+          <span>•</span>
+          <span>Total: {{ total }} servicios</span>
+        </div>
+
+        <div class="paginacion-botones">
+          <ion-button
+            size="small"
+            fill="outline"
+            (click)="prevPage()"
+            [disabled]="page <= 1 || loading">
+            Anterior
+          </ion-button>
+
+          <ion-button
+            size="small"
+            fill="outline"
+            (click)="nextPage()"
+            [disabled]="page >= pageCount || loading">
+            Siguiente
+          </ion-button>
+        </div>
+      </div>
+
     </div>
   </div>
 </ion-content>

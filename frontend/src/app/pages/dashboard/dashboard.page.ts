@@ -1,9 +1,13 @@
+// src/app/dashboard/dashboard.page.ts
+
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController, AlertController } from '@ionic/angular';
 
 import { ServiciosService } from 'src/app/services/servicios';
 import { EstadoServicioService } from 'src/app/services/estado-servicio';
+import { RutasService } from 'src/app/services/rutas';
+import { TipoServiciosService } from 'src/app/services/tipo-servicios';
 
 @Component({
   selector: 'app-dashboard',
@@ -35,18 +39,43 @@ export class DashboardPage implements OnInit {
   errorMessage: string | null = null;
   updatingId: string | null = null;
 
-  // Vista y filtros
+  // ======== Vista y filtros en memoria ========
   vista: 'hoy' | 'todos' = 'hoy';
   filtroEstado: string = 'todos';
   searchTerm: string = '';
+
+  // ======== Paginación ========
+  page = 1;
+  pageSize = 20;
+  pageCount = 1;
+  total = 0;
+
+  // ======== Filtros avanzados (backend) ========
+  // Día (solo en vista "todos")
+  dateFilterMode: 'todos' | 'hoy' | 'ayer' | 'fecha' = 'todos';
+  selectedFecha: string | null = null; // valor de ion-datetime
+
+  // Filtro por ruta (para admin / callcenter)
+  rutas: any[] = [];
+  selectedRutaId: string | null = null;
+
+  // Filtro por tipo de servicio
+  tiposServicio: any[] = [];
+  selectedTipoServicio: string | null = null;
 
   constructor(
     private router: Router,
     private serviciosService: ServiciosService,
     private estadoServicioService: EstadoServicioService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private rutasService: RutasService,
+    private tipoServiciosService: TipoServiciosService,
   ) {}
+
+  // ===========================================================
+  //                      CICLO DE VIDA
+  // ===========================================================
 
   async ngOnInit() {
     this.cargarUsuarioYPermisos();
@@ -58,7 +87,22 @@ export class DashboardPage implements OnInit {
     this.cargarUsuarioYPermisos();
   }
 
-  // ==================== Usuario / permisos ====================
+  // ===========================================================
+  //                  HELPERS GENERALES / UTIL
+  // ===========================================================
+
+  private unwrapCollection(raw: any): any[] {
+    // Si ya es array
+    if (Array.isArray(raw)) return raw;
+    // Strapi: { data: [...] }
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+  }
+
+  // ===========================================================
+  //                 USUARIO / PERMISOS / ROLES
+  // ===========================================================
+
   private cargarUsuarioYPermisos() {
     const userStr = localStorage.getItem('user');
 
@@ -90,7 +134,7 @@ export class DashboardPage implements OnInit {
   }
 
   private setPermissions(rawRole: string) {
-    // 1) Primero reseteamos todo
+    // 1) Reset
     this.canViewClientes       = false;
     this.canViewUsuarios       = false;
     this.canViewServicios      = false;
@@ -100,7 +144,6 @@ export class DashboardPage implements OnInit {
 
     const role = (rawRole || '').trim().toLowerCase();
 
-    // 2) Asignamos según rol
     if (role === 'administrador') {
       this.canViewClientes       = true;
       this.canViewUsuarios       = true;
@@ -122,10 +165,13 @@ export class DashboardPage implements OnInit {
       return;
     }
 
-    // Rol desconocido → se quedan todos en false
+    // Rol desconocido → todos en false
   }
 
-  // ==================== Navegación (menú) ====================
+  // ===========================================================
+  //                        NAVEGACIÓN
+  // ===========================================================
+
   goClientes() {
     this.router.navigateByUrl('/clientes');
   }
@@ -157,7 +203,10 @@ export class DashboardPage implements OnInit {
     this.router.navigateByUrl('/login');
   }
 
-  // ==================== Carga inicial ====================
+  // ===========================================================
+  //                      CARGA INICIAL
+  // ===========================================================
+
   private async initData() {
     this.loading = true;
     this.errorMessage = null;
@@ -165,8 +214,12 @@ export class DashboardPage implements OnInit {
     try {
       await Promise.all([
         this.loadEstados(),
-        this.loadServiciosHoy(),
+        this.loadRutas(),
+        this.loadTiposServicio(),
       ]);
+
+      // vista por defecto "hoy"
+      await this.loadServiciosHoy();
     } catch (err) {
       console.error('Error en carga inicial', err);
       this.errorMessage = 'No se pudo cargar la información.';
@@ -181,7 +234,8 @@ export class DashboardPage implements OnInit {
     }
   }
 
-  // ==================== Catálogo de estados ====================
+  // ------------------- Catálogos -------------------
+
   private async loadEstados() {
     const data = await this.estadoServicioService.listActivos();
     this.estados = Array.isArray(data) ? data : [];
@@ -195,6 +249,26 @@ export class DashboardPage implements OnInit {
     }
   }
 
+  private async loadRutas() {
+    try {
+      const res = await this.rutasService.list();
+      this.rutas = this.unwrapCollection(res);
+    } catch (err) {
+      console.error('Error cargando rutas', err);
+      this.rutas = [];
+    }
+  }
+
+  private async loadTiposServicio() {
+    try {
+      const res = await this.tipoServiciosService.list();
+      this.tiposServicio = this.unwrapCollection(res);
+    } catch (err) {
+      console.error('Error cargando tipos de servicio', err);
+      this.tiposServicio = [];
+    }
+  }
+
   get estadosParaSelect(): any[] {
     if (this.isOperador) {
       // Solo puede marcar Surtido
@@ -204,14 +278,84 @@ export class DashboardPage implements OnInit {
     return this.estados;
   }
 
-  // ==================== Servicios: hoy / todos ====================
+  // ===========================================================
+  //           CONSTRUCCIÓN DE PARÁMETROS / PAGINACIÓN
+  // ===========================================================
+
+  private setPaginationFromMeta(meta: any) {
+    if (meta?.pagination) {
+      this.page      = meta.pagination.page;
+      this.pageSize  = meta.pagination.pageSize;
+      this.pageCount = meta.pagination.pageCount;
+      this.total     = meta.pagination.total;
+    } else {
+      this.page      = 1;
+      this.pageSize  = this.servicios.length || this.pageSize;
+      this.pageCount = 1;
+      this.total     = this.servicios.length;
+    }
+  }
+
+  private buildListOptions(sort: string) {
+    const options: any = {
+      page: this.page,
+      pageSize: this.pageSize,
+      'sort[0]': sort,
+    };
+
+    // --- Fecha / día ---
+    if (this.vista === 'hoy') {
+      // Vista "hoy" → siempre dia=hoy
+      options.dia = 'hoy';
+    } else {
+      // Vista "todos"
+      if (this.dateFilterMode === 'hoy') {
+        options.dia = 'hoy';
+      } else if (this.dateFilterMode === 'ayer') {
+        options.dia = 'ayer';
+      } else if (this.dateFilterMode === 'fecha' && this.selectedFecha) {
+        // ion-datetime: 'YYYY-MM-DDTHH:mm:ss.sssZ'
+        options.fecha = this.selectedFecha.split('T')[0]; // 'YYYY-MM-DD'
+      }
+      // 'todos' → sin filtro de fecha
+    }
+
+    // --- Ruta ---
+    if (this.selectedRutaId) {
+      options.rutaDocumentId = this.selectedRutaId;
+    }
+
+    // --- Estado (solo si no es "todos") ---
+    if (this.filtroEstado !== 'todos') {
+      options.estado = this.filtroEstado;
+    }
+
+    // --- Tipo de servicio ---
+    if (this.selectedTipoServicio) {
+      options.tipo = this.selectedTipoServicio;
+    }
+
+    return options;
+  }
+
+  // ===========================================================
+  //                   CARGA DE SERVICIOS
+  // ===========================================================
+
   async loadServiciosHoy(event?: any) {
     if (!event) this.loading = true;
     this.errorMessage = null;
 
     try {
-      const data = await this.serviciosService.getHoy();
-      this.servicios = Array.isArray(data) ? data : (data?.data ?? []);
+      const resp = await this.serviciosService.list(
+        this.buildListOptions('fecha_programado:asc')
+      );
+
+      const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
+      this.servicios = data;
+
+      const meta = (resp as any)?.meta;
+      this.setPaginationFromMeta(meta);
     } catch (err) {
       console.error('Error cargando servicios de hoy', err);
       this.servicios = [];
@@ -234,11 +378,15 @@ export class DashboardPage implements OnInit {
     this.errorMessage = null;
 
     try {
-      const data = await this.serviciosService.list({
-        'sort[0]': 'fecha_programado:desc',
-      });
+      const resp = await this.serviciosService.list(
+        this.buildListOptions('fecha_programado:desc')
+      );
 
-      this.servicios = Array.isArray(data) ? data : (data?.data ?? []);
+      const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
+      this.servicios = data;
+
+      const meta = (resp as any)?.meta;
+      this.setPaginationFromMeta(meta);
     } catch (err) {
       console.error('Error cargando todos los servicios', err);
       this.servicios = [];
@@ -260,18 +408,55 @@ export class DashboardPage implements OnInit {
     const value = event.detail.value as 'hoy' | 'todos';
     this.vista = value;
 
+    // Reset paginación y filtros al cambiar vista
+    this.page = 1;
+    this.dateFilterMode = 'todos';
+    this.selectedFecha = null;
+    this.filtroEstado = 'todos';
+    this.searchTerm = '';
+    this.selectedRutaId = null;
+    this.selectedTipoServicio = null;
+
     if (this.vista === 'hoy') {
       await this.loadServiciosHoy();
     } else {
       await this.loadServiciosTodos();
     }
-
-    // limpiar filtros al cambiar vista
-    this.filtroEstado = 'todos';
-    this.searchTerm = '';
   }
 
-  // ==================== Helpers de lectura ====================
+  async onFiltersChange() {
+    this.page = 1;
+    if (this.vista === 'hoy') {
+      await this.loadServiciosHoy();
+    } else {
+      await this.loadServiciosTodos();
+    }
+  }
+
+  async nextPage() {
+    if (this.page >= this.pageCount) return;
+    this.page++;
+    if (this.vista === 'hoy') {
+      await this.loadServiciosHoy();
+    } else {
+      await this.loadServiciosTodos();
+    }
+  }
+
+  async prevPage() {
+    if (this.page <= 1) return;
+    this.page--;
+    if (this.vista === 'hoy') {
+      await this.loadServiciosHoy();
+    } else {
+      await this.loadServiciosTodos();
+    }
+  }
+
+  // ===========================================================
+  //                HELPERS DE LECTURA / PRESENTACIÓN
+  // ===========================================================
+
   getNombreCliente(servicio: any): string {
     if (this.isOperador) {
       // El operador no debe ver datos personales del cliente
@@ -364,7 +549,7 @@ export class DashboardPage implements OnInit {
   get serviciosFiltrados(): any[] {
     let lista = this.servicios || [];
 
-    // Filtro por estado
+    // Filtro por estado (además del backend, se aplica en memoria)
     if (this.filtroEstado !== 'todos') {
       lista = lista.filter(s => this.getEstadoNombre(s) === this.filtroEstado);
     }
@@ -397,7 +582,10 @@ export class DashboardPage implements OnInit {
     return lista;
   }
 
-  // ==================== Nota del operador ====================
+  // ===========================================================
+  //                NOTA DEL OPERADOR / CAMBIO ESTADO
+  // ===========================================================
+
   private async pedirNotaSurtido(): Promise<string | null> {
     const alert = await this.alertCtrl.create({
       header: 'Nota del operador',
@@ -434,7 +622,6 @@ export class DashboardPage implements OnInit {
     return null;
   }
 
-  // ==================== Cambio de estado ====================
   async onEstadoChange(servicio: any, event: any) {
     const nuevoEstadoKey = event.detail.value;
     if (!nuevoEstadoKey) return;

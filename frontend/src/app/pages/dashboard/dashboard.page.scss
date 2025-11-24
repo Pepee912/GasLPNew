@@ -192,8 +192,413 @@
     flex-direction: column;
     align-items: flex-start;
   }
+/* ================== Fondo general ================== */
+
+.dashboard-background {
+  --background: #fff3e8; /* fondo cálido */
+  color: #213549;
+}
+
+/* Header superior */
+.dashboard-header {
+  ion-toolbar {
+    --background: #fff3e8;
+    --border-color: transparent;
+    --color: #213549;
+  }
+
+  ion-title {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  ion-segment {
+    --background: #ffe4d0;
+    border-radius: 999px;
+    margin: 0 12px 8px;
+  }
+
+  ion-segment-button {
+    --indicator-color: #ff7b3a;
+    --color-checked: #ffffff;
+    --color: #213549;
+    text-transform: none;
+    font-size: 0.9rem;
+  }
+}
+
+/* ================== Layout tarjeta principal ================== */
+
+.dashboard-wrapper {
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.dashboard-card {
+  width: 100%;
+  max-width: 960px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ================== Top: título + usuario ================== */
+
+.dashboard-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.dashboard-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #213549;
+  margin: 0 0 6px;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Usuario */
+.user-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff3e8;
+}
+
+.user-icon {
+  font-size: 2.2rem;
+  color: #ff7b3a;
+}
+
+.user-name {
+  margin: 0;
+  font-weight: 600;
+  color: #213549;
+}
+
+.user-role {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+/* ================== Filtros ================== */
+
+.filtros-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Searchbar */
+.filtros-container ion-searchbar {
+  --background: #ffffff;
+  --color: #213549;
+  --placeholder-color: #9ca3af;
+  --icon-color: #ff7b3a;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+}
+
+/* Fila de filtros (ion-item) */
+.filtros-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtro-item {
+  flex: 1 1 0;
+  --background: #ffffff;
+  --color: #213549;
+  --padding-start: 8px;
+  --inner-padding-end: 0;
+  --min-height: 44px;
+  border-radius: 14px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.03);
+  margin: 0;
+}
+
+.filtro-item ion-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.filtro-item ion-select {
+  --placeholder-color: #9ca3af;
+  --color: #213549;
+  font-size: 0.9rem;
+}
+
+/* Fecha específica */
+ion-datetime {
+  --background: #ffffff;
+  --wheel-highlight-background: #ffe4d0;
+  --wheel-fade-background-rgb: 255, 228, 208;
+  border-radius: 16px;
+}
+
+/* ================== Lista de servicios ================== */
+
+.servicios-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Tarjeta de servicio */
+.servicio-card {
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3e5dd;
+  overflow: hidden;
+}
+
+/* Header de la tarjeta */
+.servicio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+}
+
+.servicio-header-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.servicio-icon {
+  font-size: 1.8rem;
+  color: #e35421;
+}
+
+ion-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #213549;
+}
+
+ion-card-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Badge de estado */
+.servicio-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+ion-badge {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Spinner pequeño */
+.servicio-spinner {
+  width: 20px;
+  height: 20px;
+}
+
+/* Contenido de la tarjeta */
+.servicio-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.servicio-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.servicio-row ion-icon {
+  font-size: 1.3rem;
+  margin-top: 2px;
+  color: #ff7b3a;
+}
+
+.servicio-label {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.servicio-value {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Dos columnas dentro de la tarjeta */
+.two-cols {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.servicio-col {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Footer: select de estado */
+.servicio-footer {
+  margin-top: 8px;
+  border-top: 1px solid #f3e5dd;
+  padding-top: 6px;
+}
+
+.servicio-estado-item {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --min-height: 40px;
+}
+
+.servicio-estado-item ion-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.servicio-estado-item ion-select {
+  --placeholder-color: #9ca3af;
+  --color: #213549;
+}
+
+/* ================== Paginación ================== */
+
+.paginacion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px dashed #f3e5dd;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+.paginacion-info {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.paginacion-botones ion-button {
+  --border-radius: 999px;
+}
+
+/* ================== Mensajes vacíos / error ================== */
+
+ion-text[color='danger'] p {
+  font-size: 0.9rem;
+}
+
+ion-item[lines='none'] ion-label.ion-text-center h2 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #213549;
+}
+
+/* ================== Responsivo ================== */
+
+@media (max-width: 768px) {
+  .dashboard-card {
+    padding: 18px 14px 16px;
+  }
+
+  .dashboard-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .two-cols {
+    flex-direction: column;
+  }
+
+  .filtros-row {
+    flex-direction: column;
+  }
+
+  .user-summary {
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+}
 
   .two-cols {
     flex-direction: column;
   }
 }
+
+/* ====== FIX SEARCHBAR ====== */
+ion-searchbar {
+  --background: #ffffff !important;
+  --color: #213549 !important;
+  --icon-color: #ff7b3a !important;
+  --placeholder-color: #6b7280 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* ====== FIX SELECT Y ITEMS BLANCOS ====== */
+ion-item.filtro-item,
+ion-select {
+  --background: #ffffff !important;
+  --color: #213549 !important;
+  --text-color: #213549 !important;
+  --placeholder-color: #6b7280 !important;
+  border-radius: 10px !important;
+}
+
+/* Etiquetas internas */
+ion-item.filtro-item ion-label {
+  color: #6b7280 !important;
+}
+
+/* ====== FIX TARJETAS NEGRAS POR MODO OSCURO ====== */
+.servicio-card,
+.servicio-card * {
+  --background: #ffffff !important;
+  background: #ffffff !important;
+  color: #213549 !important;
+}
+
+/* ICONOS DENTRO DE TARJETA */
+.servicio-card ion-icon {
+  color: #ff7b3a !important;
+}
+

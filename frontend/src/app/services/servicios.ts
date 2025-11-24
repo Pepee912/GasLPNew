@@ -16,11 +16,17 @@ export class ServiciosService {
     const res = await axios.post(
       BASE,
       { data },
-      { headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() } }
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders(),
+        },
+      }
     );
     return res.data;
   }
 
+  // Sigue funcionando tu endpoint específico /servicios/hoy
   async getHoy() {
     const res = await axios.get(`${BASE}/hoy`, {
       headers: {
@@ -46,16 +52,37 @@ export class ServiciosService {
   }
 
   async getByRuta(rutaDocumentId: string) {
-    const res = await axios.get(`${environment.apiUrl}/serviciosbyruta/${rutaDocumentId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeaders(),
-      },
-    });
+    const res = await axios.get(
+      `${environment.apiUrl}/serviciosbyruta/${rutaDocumentId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders(),
+        },
+      }
+    );
     return res.data;
   }
 
-  async list(params: any = {}) {
+  /**
+   * list:
+   *  - options.page        → pagination[page]
+   *  - options.pageSize    → pagination[pageSize]
+   *  - el resto de props se envía tal cual (sort[0], dia, fecha, estado, tipo, rutaDocumentId, etc.)
+   */
+  async list(options: any = {}) {
+    const params: any = { ...options };
+
+    if (options.page !== undefined) {
+      params['pagination[page]'] = options.page;
+      delete params.page;
+    }
+
+    if (options.pageSize !== undefined) {
+      params['pagination[pageSize]'] = options.pageSize;
+      delete params.pageSize;
+    }
+
     const res = await axios.get(BASE, {
       params,
       headers: {
@@ -64,6 +91,7 @@ export class ServiciosService {
       },
     });
 
+    // Strapi v5 → { data, meta }
     return res.data;
   }
 }
