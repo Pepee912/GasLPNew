@@ -21,6 +21,19 @@ export class DashboardUsuariosPage implements OnInit {
 
   operadorRole: any | null = null;
 
+  // Para manejar filtros + paginación en frontend
+  usuariosFiltrados: any[] = [];
+  usuariosPaginados: any[] = [];
+
+  page = 1;
+  pageSize = 10;  // cuántos usuarios por “página”/carga
+  hasMore = false;
+
+  // Filtros
+  searchText = '';                      
+  roleFilter: number | 'todos' = 'todos';
+  blockedFilter: 'todos' | 'activos' | 'bloqueados' = 'todos';
+
   // Modales
   isCreateModalOpen = false;
   isEditModalOpen = false;
@@ -34,7 +47,7 @@ export class DashboardUsuariosPage implements OnInit {
     personalNombre: '',
     personalApellidos: '',
     personalTelefono: '',
-    personalRutaId: null as string | null,  // documentId de ruta
+    personalRutaId: null as string | null,  
   };
   isOperadorSelectedCreate = false;
 
@@ -80,18 +93,94 @@ export class DashboardUsuariosPage implements OnInit {
         ) || null;
 
       // Usuarios
-      this.usuarios = await this.usuariosSrv.list();
+      const usuariosRes = await this.usuariosSrv.list();
+      this.usuarios = Array.isArray(usuariosRes) ? usuariosRes : (usuariosRes.data ?? []);
 
       // Rutas activas
       const rutasRes = await this.rutasSrv.list();
       this.rutas = rutasRes.data ?? rutasRes;
 
+      // 👇 aplicar filtros/paginación inicial
+      this.aplicarFiltros();
     } catch (err) {
       console.error('Error cargando datos', err);
       this.presentToast('Error al cargar usuarios, roles o rutas');
     } finally {
       this.loading = false;
     }
+  }
+
+  aplicarFiltros() {
+    const txt = this.searchText.trim().toLowerCase();
+
+    this.usuariosFiltrados = this.usuarios.filter(u => {
+      let ok = true;
+
+      // 🔎 Búsqueda general: username, email, nombre y apellidos de personal
+      if (txt) {
+        const username = (u.username || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const nombrePers = (u.personal?.nombre || '').toLowerCase();
+        const apellidosPers = (u.personal?.apellidos || '').toLowerCase();
+
+        ok =
+          username.includes(txt) ||
+          email.includes(txt) ||
+          nombrePers.includes(txt) ||
+          apellidosPers.includes(txt);
+      }
+
+      // 🎭 Filtro por rol
+      if (ok && this.roleFilter !== 'todos') {
+        ok = u.role?.id === this.roleFilter;
+      }
+
+      // 🚦 Filtro por estado (bloqueado / activo)
+      if (ok && this.blockedFilter !== 'todos') {
+        if (this.blockedFilter === 'bloqueados') {
+          ok = !!u.blocked;
+        } else if (this.blockedFilter === 'activos') {
+          ok = !u.blocked;
+        }
+      }
+
+      return ok;
+    });
+
+    // Reiniciar paginación y recalcular
+    this.page = 1;
+    this.recalcularPaginacion(false);
+  }
+
+  private recalcularPaginacion(append: boolean) {
+    const start = (this.page - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    const slice = this.usuariosFiltrados.slice(start, end);
+
+    this.hasMore = end < this.usuariosFiltrados.length;
+
+    this.usuariosPaginados = append
+      ? [...this.usuariosPaginados, ...slice]
+      : slice;
+  }
+
+  async loadMore(event: any) {
+    if (!this.hasMore) {
+      event.target.disabled = true;
+      event.target.complete();
+      return;
+    }
+
+    this.page++;
+    this.recalcularPaginacion(true);
+    event.target.complete();
+  }
+
+  limpiarFiltros() {
+    this.searchText = '';
+    this.roleFilter = 'todos';
+    this.blockedFilter = 'todos';
+    this.aplicarFiltros();
   }
 
   getRutaNombre(ruta: any): string {
@@ -239,9 +328,11 @@ export class DashboardUsuariosPage implements OnInit {
       });
 
       this.usuarios.push(created);
+      this.aplicarFiltros();   // 👈 recalcula lista y paginación
 
       this.presentToast('Usuario creado correctamente');
       this.closeCreateModal();
+
     } catch (err) {
       console.error('Error creando usuario', err);
       this.presentToast('Error al crear el usuario');
@@ -393,6 +484,7 @@ export class DashboardUsuariosPage implements OnInit {
         }
       }
 
+      this.aplicarFiltros();
       this.presentToast('Usuario actualizado correctamente');
       this.closeEditModal();
     } catch (err) {

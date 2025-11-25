@@ -20,6 +20,11 @@ export class ClientesPage implements OnInit {
   pageSize = 20;
   total = 0;
 
+  // Filtros adicionales
+  nombreFiltro = '';    // busca en nombre + apellidos
+  coloniaFiltro = '';   // por colonia de domicilio
+  cpFiltro = '';        // por CP de domicilio
+
   private searchTimeout: any;
 
   // Segmento: activos / inactivos
@@ -58,14 +63,35 @@ export class ClientesPage implements OnInit {
     try {
       const estadoFiltro = this.mostrarInactivos ? false : true;
 
-      const res = await this.clientesSrv.list({
+      const params: any = {
         'pagination[page]': this.page,
         'pagination[pageSize]': this.pageSize,
         'filters[estado][$eq]': estadoFiltro,
         'populate[domicilios]': 'true',
         'populate[servicios]': 'true',
         'sort[0]': 'id:desc'
-      });
+      };
+
+      // ---- Filtro por nombre / apellidos (OR) ----
+      if (this.nombreFiltro?.trim()) {
+        const term = this.nombreFiltro.trim();
+        params['filters[$or][0][nombre][$containsi]'] = term;
+        params['filters[$or][1][apellidos][$containsi]'] = term;
+      }
+
+      // ---- Filtro por colonia (en domicilio) ----
+      if (this.coloniaFiltro?.trim()) {
+        const col = this.coloniaFiltro.trim();
+        params['filters[domicilios][colonia][$containsi]'] = col;
+      }
+
+      // ---- Filtro por CP (en domicilio) ----
+      if (this.cpFiltro?.trim()) {
+        const cp = this.cpFiltro.trim();
+        params['filters[domicilios][cp][$eq]'] = cp;
+      }
+
+      const res = await this.clientesSrv.list(params);
 
       const data = res?.data ?? [];
       this.total = res?.meta?.pagination?.total ?? data.length;
@@ -81,6 +107,28 @@ export class ClientesPage implements OnInit {
       this.loading = false;
       event?.target?.complete?.();
     }
+  }
+
+  // Aplicar filtros avanzados (nombre, colonia, CP)
+  async aplicarFiltrosAvanzados() {
+    // opcional: limpiar teléfono para no mezclar búsquedas
+    // this.telefono = '';
+
+    this.page = 1;
+    await this.load();
+  }
+
+  // Limpiar filtros avanzados
+  async limpiarFiltrosAvanzados() {
+    this.nombreFiltro = '';
+    this.coloniaFiltro = '';
+    this.cpFiltro = '';
+
+    // opcional: también limpiar teléfono
+    // this.telefono = '';
+
+    this.page = 1;
+    await this.load();
   }
 
   private sanitizePhone(v: string) {

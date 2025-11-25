@@ -3,20 +3,23 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Usuarios</ion-title>
+
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-buttons slot="end">
       <ion-button (click)="openCreateModal()">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
         Nuevo usuario
       </ion-button>
     </ion-buttons>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
 
+  <!-- Loading -->
   <ng-container *ngIf="loading; else contentTpl">
     <div class="ion-text-center ion-padding">
       <ion-spinner name="crescent"></ion-spinner>
@@ -24,12 +27,70 @@
     </div>
   </ng-container>
 
+  <!-- Contenido principal -->
   <ng-template #contentTpl>
 
     <ng-container *ngIf="usuarios && usuarios.length > 0; else emptyTpl">
 
+      <!-- 🔎 Filtros de usuarios -->
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Filtros</ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <ion-item>
+            <ion-input
+              label="Buscar"
+              label-placement="stacked"
+              placeholder="Usuario, correo o nombre de operador"
+              [(ngModel)]="searchText">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Rol</ion-label>
+            <ion-select [(ngModel)]="roleFilter">
+              <ion-select-option value="todos">Todos</ion-select-option>
+              <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
+                {{ rol.name }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Estado</ion-label>
+            <ion-select [(ngModel)]="blockedFilter">
+              <ion-select-option value="todos">Todos</ion-select-option>
+              <ion-select-option value="activos">Activos</ion-select-option>
+              <ion-select-option value="bloqueados">Bloqueados</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-grid>
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" (click)="aplicarFiltros()">
+                  Buscar
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button
+                  expand="block"
+                  fill="clear"
+                  color="medium"
+                  (click)="limpiarFiltros()">
+                  Limpiar
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Lista de usuarios (paginada en frontend) -->
       <ion-list>
-        <ion-item *ngFor="let usuario of usuarios">
+        <ion-item *ngFor="let usuario of usuariosPaginados">
           <!-- Info principal del usuario -->
           <ion-label>
             <h2>
@@ -87,8 +148,20 @@
         </ion-item>
       </ion-list>
 
+      <!-- Infinite scroll -->
+      <ion-infinite-scroll
+        *ngIf="hasMore"
+        threshold="100px"
+        (ionInfinite)="loadMore($event)">
+        <ion-infinite-scroll-content
+          loadingSpinner="bubbles"
+          loadingText="Cargando más usuarios...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+
     </ng-container>
 
+    <!-- Sin usuarios -->
     <ng-template #emptyTpl>
       <div class="ion-text-center ion-padding">
         <h2>No hay usuarios registrados</h2>

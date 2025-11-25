@@ -41,6 +41,62 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Filtros avanzados -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Filtros adicionales</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
+        <ion-input
+          label="Nombre o apellidos"
+          label-placement="stacked"
+          placeholder="Ej. Juan Pérez"
+          [(ngModel)]="nombreFiltro">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Colonia"
+          label-placement="stacked"
+          placeholder="Ej. Centro"
+          [(ngModel)]="coloniaFiltro">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Código Postal"
+          label-placement="stacked"
+          type="number"
+          placeholder="Ej. 98000"
+          [(ngModel)]="cpFiltro">
+        </ion-input>
+      </ion-item>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-button expand="block" (click)="aplicarFiltrosAvanzados()">
+              Buscar
+            </ion-button>
+          </ion-col>
+          <ion-col size="6">
+            <ion-button
+              expand="block"
+              fill="clear"
+              color="medium"
+              (click)="limpiarFiltrosAvanzados()">
+              Limpiar
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
   <!-- Mensaje cuando no hay teléfono y no hay clientes -->
   <ion-item lines="none" *ngIf="!telefono && !clientes.length && !loading && !searching">
     <ion-label color="medium">
