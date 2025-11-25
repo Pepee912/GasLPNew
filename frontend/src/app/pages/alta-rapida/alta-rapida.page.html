@@ -17,7 +17,9 @@
     <ion-card-content>
 
       <form [formGroup]="fCliente" (ngSubmit)="$event.preventDefault()">
-        <ion-item>
+
+        <!-- Teléfono solo cuando NO hay cliente existente -->
+        <ion-item *ngIf="!clienteExistente">
           <ion-input
             label="Teléfono (10 dígitos) *"
             label-placement="floating"
@@ -47,7 +49,7 @@
           </ion-item>
         </ng-container>
 
-        <!-- Cliente existente -->
+        <!-- Cliente existente (solo datos, sin input de teléfono) -->
         <ng-container *ngIf="clienteExistente">
           <ion-item lines="none">
             <ion-label>
@@ -62,6 +64,7 @@
             </ion-label>
           </ion-item>
         </ng-container>
+
       </form>
 
     </ion-card-content>
@@ -151,8 +154,24 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- ===================== BOTÓN PARA MOSTRAR SERVICIO (solo nuevo cliente) ===================== -->
+  <ion-card *ngIf="!clienteExistente">
+    <ion-card-content>
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="showServicio = !showServicio">
+        <ion-icon
+          slot="start"
+          [name]="showServicio ? 'remove-circle-outline' : 'add-circle-outline'">
+        </ion-icon>
+        {{ showServicio ? 'Ocultar sección de servicio' : 'Agregar servicio (opcional)' }}
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
   <!-- ===================== SERVICIO ===================== -->
-  <ion-card>
+  <ion-card *ngIf="showServicio || clienteExistente">
     <ion-card-header>
       <ion-card-title>Servicio (opcional)</ion-card-title>
     </ion-card-header>
@@ -207,9 +226,9 @@
             presentation="date-time"
             minute-values="0,15,30,45"
             locale="es-MX"
-            show-default-buttons="true"
             hour-cycle="h23"
-            color="primary">
+            color="primary"
+            [min]="minFechaProgramado">
           </ion-datetime>
         </ion-item>
         <ion-note color="medium">

@@ -23,6 +23,12 @@ type DomicilioLite = AnyEntity;
 export class AltaRapidaPage implements OnInit {
   submitting = false;
 
+  // 👇 controla si se muestra el card de Servicio
+  showServicio = false;
+
+  // 🔹 Fecha mínima permitida para programar servicios (ahora)
+  minFechaProgramado = new Date().toISOString();
+
   clienteExistente: ClienteLite | null = null;
   domiciliosExistentes: DomicilioLite[] = [];
 
@@ -74,6 +80,7 @@ export class AltaRapidaPage implements OnInit {
   }
 
   async ngOnInit() {
+    this.minFechaProgramado = new Date().toISOString(); 
     await this.cargarCatalogos();
 
     const state = history.state as { telefono?: string } | undefined;
@@ -219,6 +226,7 @@ export class AltaRapidaPage implements OnInit {
       this.clienteExistente = null;
       this.domiciliosExistentes = [];
       this.usarDomicilioExistente = false;
+      this.showServicio = false; // 🔹 nuevo cliente => ocultamos servicio
       return;
     }
 
@@ -248,17 +256,22 @@ export class AltaRapidaPage implements OnInit {
         const firstDom = this.domiciliosExistentes[0];
         this.domicilioElegidoDocumentId = firstDom ? (this.docIdOf(firstDom) as any) : null;
 
+        // si hay cliente existente, mostramos siempre la sección de servicio
+        this.showServicio = true;
+
         await this.msg('Cliente encontrado. Puedes crear el servicio.', 'success');
       } else {
         // Sin cliente para ese teléfono
         this.clienteExistente = null;
         this.domiciliosExistentes = [];
         this.usarDomicilioExistente = false;
+        this.showServicio = false;  // 🔹 seguimos en modo “nuevo cliente”
       }
     } catch {
       this.clienteExistente = null;
       this.domiciliosExistentes = [];
       this.usarDomicilioExistente = false;
+      this.showServicio = false;
     }
   }
 
@@ -316,10 +329,33 @@ export class AltaRapidaPage implements OnInit {
     const srvValues = this.fSrv.value;
     const quiereServicio = !!srvValues.tipo_servicio;
 
-    // Si va a haber servicio, la fecha programada es obligatoria
-    if (quiereServicio && !srvValues.fecha_programado) {
-      await this.msg('Selecciona la fecha programada para el servicio.', 'warning');
-      return;
+    // 🔹 Validación de fecha programada
+    let fechaProgramadoISO: string | null = null;
+
+    if (quiereServicio) {
+      if (!srvValues.fecha_programado) {
+        await this.msg('Selecciona la fecha y hora programada para el servicio.', 'warning');
+        return;
+      }
+
+      // Convertimos a ISO bien formado
+      fechaProgramadoISO = this.toISO(srvValues.fecha_programado);
+      if (!fechaProgramadoISO) {
+        await this.msg('La fecha programada no es válida.', 'warning');
+        return;
+      }
+
+      const fechaProg = new Date(fechaProgramadoISO);
+      const ahora = new Date();
+
+      // No permitir fechas/hora en el pasado
+      if (fechaProg.getTime() < ahora.getTime()) {
+        await this.msg(
+          'No puedes programar un servicio en una fecha u hora pasada.',
+          'warning'
+        );
+        return;
+      }
     }
 
     // Si va a haber servicio, debe haber un domicilio válido y completo
@@ -408,7 +444,7 @@ export class AltaRapidaPage implements OnInit {
           tipo_servicio: srvValues.tipo_servicio,
           ruta: rutaRef,
           observacion: srvValues.observacion || '',
-          fecha_programado: this.toISO(srvValues.fecha_programado),
+          fecha_programado: fechaProgramadoISO,
         };
 
         // Solo lo mandamos si encontramos estado_servicio válido
