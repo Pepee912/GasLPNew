@@ -1,3 +1,4 @@
+// src/app/services/estado-servicio.ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { environment } from 'src/environments/environment';
@@ -20,15 +21,14 @@ export class EstadoServicioService {
 
   /**
    * Listar estados de servicio (con servicios asociados)
-   * Puedes pasar filtros extra en params, por ejemplo:
-   *   { 'filters[estado][$eq]': true }  // solo activos
+   * DEVUELVE SOLO ARREGLO (sin meta) => útil donde no necesitas paginación
    */
   async list(params: any = {}) {
     const res = await axios.get(BASE, {
       params: {
         'pagination[pageSize]': 100,
         'sort[0]': 'tipo:asc',
-        'populate[servicios]': true,   // 🔹 importante para contar servicios asociados
+        'populate[servicios]': true,
         ...params,
       },
       headers: {
@@ -41,7 +41,30 @@ export class EstadoServicioService {
   }
 
   /**
+   * NUEVO: listar con paginación REAL (data + meta)
+   */
+  async listPaged(params: any = {}) {
+    const res = await axios.get(BASE, {
+      params: {
+        'pagination[page]': 1,
+        'pagination[pageSize]': 20,
+        'sort[0]': 'tipo:asc',
+        'populate[servicios]': true,
+        ...params,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    // Strapi v4/v5: { data, meta }
+    return res.data;
+  }
+
+  /**
    * Obtener solo los estados activos (estado = true) ordenados por tipo
+   * (Lo dejo como lo tenías, usando unwrap)
    */
   async listActivos() {
     const res = await axios.get(BASE, {
@@ -60,8 +83,7 @@ export class EstadoServicioService {
   }
 
   /**
-   * Obtener un estado por su "tipo" (ej: 'Cancelado', 'Asignado', 'Surtido')
-   * Se mantiene igual para no romper la lógica donde lo uses.
+   * Obtener un estado por su "tipo"
    */
   async getByTipo(tipo: string) {
     const res = await axios.get(BASE, {
@@ -130,7 +152,7 @@ export class EstadoServicioService {
   }
 
   /**
-   * DELETE definitivo (no recomendado en tu caso, pero lo dejo por si lo requieres en otro contexto)
+   * DELETE definitivo
    */
   async delete(documentId: string) {
     const res = await axios.delete(`${BASE}/${documentId}`, {

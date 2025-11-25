@@ -15,14 +15,16 @@ export class TipoServiciosService {
   }
 
   /**
-   * Listar tipos de servicio
-   * Por defecto solo activos (estado = true),
-   * con servicios relacionados (populate[servicios]).
+   * Listar tipos de servicio (paginado)
+   * - Soporta filtros y paginación via params
+   * - Devuelve { data, meta }
    */
   async list(params: any = {}) {
     const res = await axios.get(BASE, {
       params: {
-        'pagination[pageSize]': 100,
+        // valores por defecto
+        'pagination[page]': 1,
+        'pagination[pageSize]': 20,
         'sort[0]': 'nombre:asc',
         'filters[estado][$eq]': true,
         'populate[servicios]': true,
@@ -34,8 +36,7 @@ export class TipoServiciosService {
       },
     });
 
-    // Strapi v4: { data, meta }
-    return res.data;
+    return res.data; // { data, meta }
   }
 
   /**

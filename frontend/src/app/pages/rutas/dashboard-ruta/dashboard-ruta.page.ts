@@ -16,8 +16,20 @@ export class DashboardRutaPage implements OnInit {
   rutasInactivas: Ruta[] = [];
   loading = false;
 
-  // búsqueda (aplica para ambas listas)
+  // segmento: qué lista se ve
+  segment: 'activas' | 'inactivas' = 'activas';
+
+  // filtro por nombre
   searchTerm = '';
+
+  // paginación
+  pageSize = 20;
+
+  pageActivas = 1;
+  totalActivas = 0;
+
+  pageInactivas = 1;
+  totalInactivas = 0;
 
   // modal
   isModalOpen = false;
@@ -35,7 +47,8 @@ export class DashboardRutaPage implements OnInit {
 
   ngOnInit() {
     this.initForm();
-    this.loadRutas();
+    // carga inicial: activas
+    this.cargarActivas();
   }
 
   private initForm() {
@@ -45,44 +58,160 @@ export class DashboardRutaPage implements OnInit {
     });
   }
 
-  async loadRutas() {
-    this.loading = true;
-    try {
-      // activas
-      const resAct: any = await this.rutasSrv.list({
-        'populate[personals]': true,
-        'populate[servicios]': true,
-      });
-      this.rutasActivas = resAct?.data ?? [];
+  // ---------- helpers de filtro ----------
 
-      // inactivas
-      const resInact: any = await this.rutasSrv.listInactivas({
+  private buildNombreFilter(): any {
+    const params: any = {};
+    if (this.searchTerm.trim()) {
+      params['filters[nombre][$containsi]'] = this.searchTerm.trim();
+    }
+    return params;
+  }
+
+  // ---------- cargar rutas (paginado) ----------
+
+  async cargarActivas(event?: any, append: boolean = false) {
+    if (!event) this.loading = true;
+
+    try {
+      const res: any = await this.rutasSrv.listPaged({
+        'filters[estado][$eq]': true,
+        'pagination[page]': this.pageActivas,
+        'pagination[pageSize]': this.pageSize,
         'populate[personals]': true,
         'populate[servicios]': true,
+        ...this.buildNombreFilter(),
       });
-      this.rutasInactivas = resInact?.data ?? [];
+
+      const dataPage: any[] = res?.data ?? [];
+      const meta = res?.meta ?? {};
+      this.totalActivas = meta.pagination?.total ?? dataPage.length;
+
+      this.rutasActivas = append
+        ? [...this.rutasActivas, ...dataPage]
+        : dataPage;
     } catch (err) {
       console.error(err);
-      this.presentToast('Error al cargar rutas', 'danger');
+      this.presentToast('Error al cargar rutas activas', 'danger');
+      if (!append) {
+        this.rutasActivas = [];
+        this.totalActivas = 0;
+      }
     } finally {
       this.loading = false;
+      event?.target?.complete?.();
     }
   }
 
-  // filtros para búsqueda
-  get rutasActivasFiltradas(): Ruta[] {
-    if (!this.searchTerm) return this.rutasActivas;
-    const term = this.searchTerm.toLowerCase();
-    return this.rutasActivas.filter(r => r.nombre?.toLowerCase().includes(term));
+  async cargarInactivas(event?: any, append: boolean = false) {
+    if (!event) this.loading = true;
+
+    try {
+      const res: any = await this.rutasSrv.listPaged({
+        'filters[estado][$eq]': false,
+        'pagination[page]': this.pageInactivas,
+        'pagination[pageSize]': this.pageSize,
+        'populate[personals]': true,
+        'populate[servicios]': true,
+        ...this.buildNombreFilter(),
+      });
+
+      const dataPage: any[] = res?.data ?? [];
+      const meta = res?.meta ?? {};
+      this.totalInactivas = meta.pagination?.total ?? dataPage.length;
+
+      this.rutasInactivas = append
+        ? [...this.rutasInactivas, ...dataPage]
+        : dataPage;
+    } catch (err) {
+      console.error(err);
+      this.presentToast('Error al cargar rutas desactivadas', 'danger');
+      if (!append) {
+        this.rutasInactivas = [];
+        this.totalInactivas = 0;
+      }
+    } finally {
+      this.loading = false;
+      event?.target?.complete?.();
+    }
   }
 
-  get rutasInactivasFiltradas(): Ruta[] {
-    if (!this.searchTerm) return this.rutasInactivas;
-    const term = this.searchTerm.toLowerCase();
-    return this.rutasInactivas.filter(r => r.nombre?.toLowerCase().includes(term));
+  // pull-to-refresh
+  doRefresh(event: any) {
+    if (this.segment === 'activas') {
+      this.pageActivas = 1;
+      this.cargarActivas(event);
+    } else {
+      this.pageInactivas = 1;
+      this.cargarInactivas(event);
+    }
   }
 
-  // crear
+  onSegmentChange(ev: any) {
+    const value = ev.detail.value as 'activas' | 'inactivas';
+    this.segment = value;
+
+    if (value === 'activas') {
+      if (!this.rutasActivas.length) {
+        this.pageActivas = 1;
+        this.cargarActivas();
+      }
+    } else {
+      if (!this.rutasInactivas.length) {
+        this.pageInactivas = 1;
+        this.cargarInactivas();
+      }
+    }
+  }
+
+  // ---------- filtros Buscar / Limpiar ----------
+
+  async aplicarFiltros() {
+    if (this.segment === 'activas') {
+      this.pageActivas = 1;
+      await this.cargarActivas();
+    } else {
+      this.pageInactivas = 1;
+      await this.cargarInactivas();
+    }
+  }
+
+  async limpiarFiltros() {
+    this.searchTerm = '';
+    this.pageActivas = 1;
+    this.pageInactivas = 1;
+
+    if (this.segment === 'activas') {
+      await this.cargarActivas();
+    } else {
+      await this.cargarInactivas();
+    }
+  }
+
+  // ---------- infinite scroll ----------
+
+  async loadMore(event: any) {
+    if (this.segment === 'activas') {
+      if (this.rutasActivas.length >= this.totalActivas) {
+        event.target.disabled = true;
+        event.target.complete();
+        return;
+      }
+      this.pageActivas++;
+      await this.cargarActivas(event, true);
+    } else {
+      if (this.rutasInactivas.length >= this.totalInactivas) {
+        event.target.disabled = true;
+        event.target.complete();
+        return;
+      }
+      this.pageInactivas++;
+      await this.cargarInactivas(event, true);
+    }
+  }
+
+  // ---------- crear / editar ----------
+
   openCreateModal() {
     this.modalMode = 'create';
     this.selectedRuta = null;
@@ -93,7 +222,6 @@ export class DashboardRutaPage implements OnInit {
     this.isModalOpen = true;
   }
 
-  // editar
   openEditModal(ruta: Ruta) {
     this.modalMode = 'edit';
     this.selectedRuta = ruta;
@@ -130,7 +258,11 @@ export class DashboardRutaPage implements OnInit {
       }
 
       this.closeModal();
-      this.loadRutas();
+      // recargamos ambas listas para que reflejen cambios de estado
+      this.pageActivas = 1;
+      this.pageInactivas = 1;
+      await this.cargarActivas();
+      await this.cargarInactivas();
     } catch (err) {
       console.error(err);
       this.presentToast('Ocurrió un error al guardar la ruta', 'danger');
@@ -161,7 +293,11 @@ export class DashboardRutaPage implements OnInit {
     try {
       await this.rutasSrv.softDelete(ruta.documentId);
       await this.presentToast('Ruta desactivada correctamente');
-      this.loadRutas();
+
+      this.pageActivas = 1;
+      this.pageInactivas = 1;
+      await this.cargarActivas();
+      await this.cargarInactivas();
     } catch (err) {
       console.error(err);
       this.presentToast('Error al desactivar la ruta', 'danger');
@@ -173,7 +309,11 @@ export class DashboardRutaPage implements OnInit {
     try {
       await this.rutasSrv.update(ruta.documentId, { estado: true });
       await this.presentToast('Ruta reactivada correctamente');
-      this.loadRutas();
+
+      this.pageActivas = 1;
+      this.pageInactivas = 1;
+      await this.cargarActivas();
+      await this.cargarInactivas();
     } catch (err) {
       console.error(err);
       this.presentToast('Error al reactivar la ruta', 'danger');

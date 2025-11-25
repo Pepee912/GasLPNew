@@ -1,3 +1,5 @@
+// src/app/pages/tipo-servicio/tipo-servicio.page.ts
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertController, ToastController } from '@ionic/angular';
@@ -15,7 +17,20 @@ export class TipoServicioPage implements OnInit {
   tipoServiciosInactivos: any[] = [];
   loading = false;
 
+  // segmento
   segment: 'activos' | 'inactivos' = 'activos';
+
+  // filtros
+  searchNombre = '';
+
+  // paginación
+  pageSize = 20;
+
+  pageActivos = 1;
+  totalActivos = 0;
+
+  pageInactivos = 1;
+  totalInactivos = 0;
 
   // Modal
   isModalOpen = false;
@@ -41,42 +56,85 @@ export class TipoServicioPage implements OnInit {
     });
   }
 
-  // --------- Cargar datos ---------
+  // --------- Cargar datos con paginación + filtros ---------
 
-  async cargarActivos(event?: any) {
-    this.loading = true;
+  private buildNombreFilter(): any {
+    const params: any = {};
+    if (this.searchNombre.trim()) {
+      params['filters[nombre][$containsi]'] = this.searchNombre.trim();
+    }
+    return params;
+  }
+
+  async cargarActivos(event?: any, append: boolean = false) {
+    if (!event) this.loading = true;
+
     try {
-      const res = await this.tipoSrv.list();
-      this.tipoServiciosActivos = res.data || [];
+      const res = await this.tipoSrv.list({
+        'filters[estado][$eq]': true,
+        'pagination[page]': this.pageActivos,
+        'pagination[pageSize]': this.pageSize,
+        ...this.buildNombreFilter(),
+      });
+
+      const data = res.data || [];
+      const meta = res.meta || {};
+      this.totalActivos = meta.pagination?.total ?? data.length;
+
+      this.tipoServiciosActivos = append
+        ? [...this.tipoServiciosActivos, ...data]
+        : data;
     } catch (error) {
       console.error(error);
       this.presentToast('Error al cargar tipos de servicio activos', 'danger');
+      if (!append) {
+        this.tipoServiciosActivos = [];
+        this.totalActivos = 0;
+      }
     } finally {
       this.loading = false;
-      event?.target.complete();
+      event?.target?.complete?.();
     }
   }
 
-  async cargarInactivos(event?: any) {
-    this.loading = true;
+  async cargarInactivos(event?: any, append: boolean = false) {
+    if (!event) this.loading = true;
+
     try {
       const res = await this.tipoSrv.list({
-        'filters[estado][$eq]': false
+        'filters[estado][$eq]': false,
+        'pagination[page]': this.pageInactivos,
+        'pagination[pageSize]': this.pageSize,
+        ...this.buildNombreFilter(),
       });
-      this.tipoServiciosInactivos = res.data || [];
+
+      const data = res.data || [];
+      const meta = res.meta || {};
+      this.totalInactivos = meta.pagination?.total ?? data.length;
+
+      this.tipoServiciosInactivos = append
+        ? [...this.tipoServiciosInactivos, ...data]
+        : data;
     } catch (error) {
       console.error(error);
       this.presentToast('Error al cargar tipos de servicio desactivados', 'danger');
+      if (!append) {
+        this.tipoServiciosInactivos = [];
+        this.totalInactivos = 0;
+      }
     } finally {
       this.loading = false;
-      event?.target.complete();
+      event?.target?.complete?.();
     }
   }
 
+  // pull-to-refresh
   doRefresh(event: any) {
     if (this.segment === 'activos') {
+      this.pageActivos = 1;
       this.cargarActivos(event);
     } else {
+      this.pageInactivos = 1;
       this.cargarInactivos(event);
     }
   }
@@ -84,8 +142,63 @@ export class TipoServicioPage implements OnInit {
   onSegmentChange(ev: any) {
     const value = ev.detail.value as 'activos' | 'inactivos';
     this.segment = value;
-    if (value === 'inactivos' && !this.tipoServiciosInactivos.length) {
-      this.cargarInactivos();
+
+    if (value === 'activos') {
+      if (!this.tipoServiciosActivos.length) {
+        this.pageActivos = 1;
+        this.cargarActivos();
+      }
+    } else {
+      if (!this.tipoServiciosInactivos.length) {
+        this.pageInactivos = 1;
+        this.cargarInactivos();
+      }
+    }
+  }
+
+  // --------- Filtros (Buscar / Limpiar) ---------
+
+  async aplicarFiltros() {
+    if (this.segment === 'activos') {
+      this.pageActivos = 1;
+      await this.cargarActivos();
+    } else {
+      this.pageInactivos = 1;
+      await this.cargarInactivos();
+    }
+  }
+
+  async limpiarFiltros() {
+    this.searchNombre = '';
+    this.pageActivos = 1;
+    this.pageInactivos = 1;
+
+    if (this.segment === 'activos') {
+      await this.cargarActivos();
+    } else {
+      await this.cargarInactivos();
+    }
+  }
+
+  // --------- Infinite scroll ---------
+
+  async loadMore(event: any) {
+    if (this.segment === 'activos') {
+      if (this.tipoServiciosActivos.length >= this.totalActivos) {
+        event.target.disabled = true;
+        event.target.complete();
+        return;
+      }
+      this.pageActivos++;
+      await this.cargarActivos(event, true);
+    } else {
+      if (this.tipoServiciosInactivos.length >= this.totalInactivos) {
+        event.target.disabled = true;
+        event.target.complete();
+        return;
+      }
+      this.pageInactivos++;
+      await this.cargarInactivos(event, true);
     }
   }
 
@@ -137,12 +250,16 @@ export class TipoServicioPage implements OnInit {
       }
 
       this.cerrarModal();
+
+      // recargar la lista actual considerando filtros y paginación
       if (this.segment === 'activos') {
-        this.cargarActivos();
+        this.pageActivos = 1;
+        await this.cargarActivos();
       } else {
-        // por si estás editando uno desactivado
-        this.cargarInactivos();
+        this.pageInactivos = 1;
+        await this.cargarInactivos();
       }
+
     } catch (error: any) {
       console.error(error);
       this.presentToast('Error al guardar el tipo de servicio', 'danger');
@@ -154,7 +271,8 @@ export class TipoServicioPage implements OnInit {
   async confirmarDesactivar(tipo: any) {
     const alert = await this.alertCtrl.create({
       header: 'Desactivar tipo de servicio',
-      message: `¿Seguro que deseas desactivar <strong>${tipo.nombre}</strong>? Ya no se podrá usar en nuevos servicios, pero se conservará el historial.`,
+      message: `¿Seguro que deseas desactivar <strong>${tipo.nombre}</strong>? Ya no se podrá usar en nuevos
+ servicios, pero se conservará el historial.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -172,9 +290,12 @@ export class TipoServicioPage implements OnInit {
     try {
       await this.tipoSrv.desactivar(tipo.documentId);
       this.presentToast('Tipo de servicio desactivado');
-      this.cargarActivos();
-      // opcional: si tienes el segment en inactivos recargar también
-      this.cargarInactivos();
+
+      // refrescar ambas listas desde página 1
+      this.pageActivos = 1;
+      this.pageInactivos = 1;
+      await this.cargarActivos();
+      await this.cargarInactivos();
     } catch (error) {
       console.error(error);
       this.presentToast('Error al desactivar el tipo de servicio', 'danger');
@@ -201,8 +322,11 @@ export class TipoServicioPage implements OnInit {
     try {
       await this.tipoSrv.reactivar(tipo.documentId);
       this.presentToast('Tipo de servicio reactivado');
-      this.cargarInactivos();
-      this.cargarActivos();
+
+      this.pageActivos = 1;
+      this.pageInactivos = 1;
+      await this.cargarActivos();
+      await this.cargarInactivos();
     } catch (error) {
       console.error(error);
       this.presentToast('Error al reactivar el tipo de servicio', 'danger');

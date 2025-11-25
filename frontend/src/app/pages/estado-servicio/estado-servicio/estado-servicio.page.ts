@@ -1,3 +1,5 @@
+// src/app/pages/estado-servicio/estado-servicio.page.ts
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertController, ToastController } from '@ionic/angular';
@@ -16,6 +18,18 @@ export class EstadoServicioPage implements OnInit {
   loading = false;
 
   segment: 'activos' | 'inactivos' = 'activos';
+
+  // Filtro por tipo
+  searchTipo = '';
+
+  // Paginación
+  pageSize = 20;
+
+  pageActivos = 1;
+  totalActivos = 0;
+
+  pageInactivos = 1;
+  totalInactivos = 0;
 
   // Modal
   isModalOpen = false;
@@ -41,42 +55,91 @@ export class EstadoServicioPage implements OnInit {
     });
   }
 
-  // ---------- Cargar datos ----------
+  // ---------- Helpers de filtros ----------
 
-  async cargarActivos(event?: any) {
-    this.loading = true;
+  private buildTipoFilter(): any {
+    const params: any = {};
+    if (this.searchTipo.trim()) {
+      params['filters[tipo][$containsi]'] = this.searchTipo.trim();
+    }
+    return params;
+  }
+
+  // ---------- Cargar datos con paginación ----------
+
+  async cargarActivos(event?: any, append: boolean = false) {
+    if (!event) this.loading = true;
+
     try {
-      this.estadosActivos = await this.estadoSrv.list({
+      const res = await this.estadoSrv.listPaged({
         'filters[estado][$eq]': true,
+        'pagination[page]': this.pageActivos,
+        'pagination[pageSize]': this.pageSize,
+        ...this.buildTipoFilter(),
       });
+
+      const data = Array.isArray(res.data)
+        ? res.data
+        : (res.data?.data ?? []);
+      const meta = res.meta || {};
+      this.totalActivos = meta.pagination?.total ?? data.length;
+
+      this.estadosActivos = append
+        ? [...this.estadosActivos, ...data]
+        : data;
     } catch (error) {
       console.error(error);
       this.presentToast('Error al cargar estados de servicio activos', 'danger');
+      if (!append) {
+        this.estadosActivos = [];
+        this.totalActivos = 0;
+      }
     } finally {
       this.loading = false;
-      event?.target.complete();
+      event?.target?.complete?.();
     }
   }
 
-  async cargarInactivos(event?: any) {
-    this.loading = true;
+  async cargarInactivos(event?: any, append: boolean = false) {
+    if (!event) this.loading = true;
+
     try {
-      this.estadosInactivos = await this.estadoSrv.list({
+      const res = await this.estadoSrv.listPaged({
         'filters[estado][$eq]': false,
+        'pagination[page]': this.pageInactivos,
+        'pagination[pageSize]': this.pageSize,
+        ...this.buildTipoFilter(),
       });
+
+      const data = Array.isArray(res.data)
+        ? res.data
+        : (res.data?.data ?? []);
+      const meta = res.meta || {};
+      this.totalInactivos = meta.pagination?.total ?? data.length;
+
+      this.estadosInactivos = append
+        ? [...this.estadosInactivos, ...data]
+        : data;
     } catch (error) {
       console.error(error);
       this.presentToast('Error al cargar estados de servicio desactivados', 'danger');
+      if (!append) {
+        this.estadosInactivos = [];
+        this.totalInactivos = 0;
+      }
     } finally {
       this.loading = false;
-      event?.target.complete();
+      event?.target?.complete?.();
     }
   }
 
+  // Pull-to-refresh
   doRefresh(event: any) {
     if (this.segment === 'activos') {
+      this.pageActivos = 1;
       this.cargarActivos(event);
     } else {
+      this.pageInactivos = 1;
       this.cargarInactivos(event);
     }
   }
@@ -84,8 +147,63 @@ export class EstadoServicioPage implements OnInit {
   onSegmentChange(ev: any) {
     const value = ev.detail.value as 'activos' | 'inactivos';
     this.segment = value;
-    if (value === 'inactivos' && !this.estadosInactivos.length) {
-      this.cargarInactivos();
+
+    if (value === 'activos') {
+      if (!this.estadosActivos.length) {
+        this.pageActivos = 1;
+        this.cargarActivos();
+      }
+    } else {
+      if (!this.estadosInactivos.length) {
+        this.pageInactivos = 1;
+        this.cargarInactivos();
+      }
+    }
+  }
+
+  // ---------- Filtros (Buscar / Limpiar) ----------
+
+  async aplicarFiltros() {
+    if (this.segment === 'activos') {
+      this.pageActivos = 1;
+      await this.cargarActivos();
+    } else {
+      this.pageInactivos = 1;
+      await this.cargarInactivos();
+    }
+  }
+
+  async limpiarFiltros() {
+    this.searchTipo = '';
+    this.pageActivos = 1;
+    this.pageInactivos = 1;
+
+    if (this.segment === 'activos') {
+      await this.cargarActivos();
+    } else {
+      await this.cargarInactivos();
+    }
+  }
+
+  // ---------- Infinite scroll ----------
+
+  async loadMore(event: any) {
+    if (this.segment === 'activos') {
+      if (this.estadosActivos.length >= this.totalActivos) {
+        event.target.disabled = true;
+        event.target.complete();
+        return;
+      }
+      this.pageActivos++;
+      await this.cargarActivos(event, true);
+    } else {
+      if (this.estadosInactivos.length >= this.totalInactivos) {
+        event.target.disabled = true;
+        event.target.complete();
+        return;
+      }
+      this.pageInactivos++;
+      await this.cargarInactivos(event, true);
     }
   }
 
@@ -139,9 +257,11 @@ export class EstadoServicioPage implements OnInit {
       this.cerrarModal();
 
       if (this.segment === 'activos') {
-        this.cargarActivos();
+        this.pageActivos = 1;
+        await this.cargarActivos();
       } else {
-        this.cargarInactivos();
+        this.pageInactivos = 1;
+        await this.cargarInactivos();
       }
     } catch (error: any) {
       console.error(error);
@@ -172,8 +292,11 @@ export class EstadoServicioPage implements OnInit {
     try {
       await this.estadoSrv.desactivar(estado.documentId);
       this.presentToast('Estado de servicio desactivado');
-      this.cargarActivos();
-      this.cargarInactivos();
+
+      this.pageActivos = 1;
+      this.pageInactivos = 1;
+      await this.cargarActivos();
+      await this.cargarInactivos();
     } catch (error) {
       console.error(error);
       this.presentToast('Error al desactivar el estado de servicio', 'danger');
@@ -200,8 +323,11 @@ export class EstadoServicioPage implements OnInit {
     try {
       await this.estadoSrv.reactivar(estado.documentId);
       this.presentToast('Estado de servicio reactivado');
-      this.cargarInactivos();
-      this.cargarActivos();
+
+      this.pageActivos = 1;
+      this.pageInactivos = 1;
+      await this.cargarActivos();
+      await this.cargarInactivos();
     } catch (error) {
       console.error(error);
       this.presentToast('Error al reactivar el estado de servicio', 'danger');
