@@ -114,7 +114,7 @@ export class DashboardPage implements OnInit {
     try {
       this.user = JSON.parse(userStr);
 
-      console.log('Usuario completo:', this.user);
+      //console.log('Usuario completo:', this.user);
 
       const roleName = (this.user.role?.name || '').toString().toLowerCase();
       const roleType = (this.user.role?.type || '').toString().toLowerCase();
