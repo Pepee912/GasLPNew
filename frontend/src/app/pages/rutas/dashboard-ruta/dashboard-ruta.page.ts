@@ -274,7 +274,7 @@ export class DashboardRutaPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Desactivar ruta',
       message:
-        `¿Seguro que deseas desactivar la ruta <strong>${ruta.nombre}</strong>? ` +
+        `¿Seguro que deseas desactivar la ruta ${ruta.nombre}? ` +
         'Los registros históricos se mantienen.',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },

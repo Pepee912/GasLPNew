@@ -271,7 +271,7 @@ export class TipoServicioPage implements OnInit {
   async confirmarDesactivar(tipo: any) {
     const alert = await this.alertCtrl.create({
       header: 'Desactivar tipo de servicio',
-      message: `¿Seguro que deseas desactivar <strong>${tipo.nombre}</strong>? Ya no se podrá usar en nuevos
+      message: `¿Seguro que deseas desactivar ${tipo.nombre}? Ya no se podrá usar en nuevos
  servicios, pero se conservará el historial.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -305,7 +305,7 @@ export class TipoServicioPage implements OnInit {
   async confirmarReactivar(tipo: any) {
     const alert = await this.alertCtrl.create({
       header: 'Reactivar tipo de servicio',
-      message: `¿Reactivar <strong>${tipo.nombre}</strong> para usarlo nuevamente en servicios?`,
+      message: `¿Reactivar ${tipo.nombre} para usarlo nuevamente en servicios?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {

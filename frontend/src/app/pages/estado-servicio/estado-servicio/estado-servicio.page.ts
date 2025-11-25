@@ -274,7 +274,7 @@ export class EstadoServicioPage implements OnInit {
   async confirmarDesactivar(estado: any) {
     const alert = await this.alertCtrl.create({
       header: 'Desactivar estado de servicio',
-      message: `¿Seguro que deseas desactivar <strong>${estado.tipo}</strong>? No se podrá usar en nuevos servicios, pero se conservará el historial.`,
+      message: `¿Seguro que deseas desactivar ${estado.tipo}? No se podrá usar en nuevos servicios, pero se conservará el historial.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -306,7 +306,7 @@ export class EstadoServicioPage implements OnInit {
   async confirmarReactivar(estado: any) {
     const alert = await this.alertCtrl.create({
       header: 'Reactivar estado de servicio',
-      message: `¿Reactivar <strong>${estado.tipo}</strong> para usarlo nuevamente?`,
+      message: `¿Reactivar ${estado.tipo} para usarlo nuevamente?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
