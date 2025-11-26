@@ -1,5 +1,5 @@
-<ion-header>
-  <ion-toolbar>
+<ion-header class="cliente-edit-header">
+  <ion-toolbar class="cliente-edit-toolbar">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/clientes"></ion-back-button>
     </ion-buttons>
@@ -7,103 +7,141 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ng-container *ngIf="!loading; else skel">
-    <!-- ======== FORM CLIENTE ======== -->
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <ion-item>
-        <ion-input label="Nombre *" label-placement="floating" formControlName="nombre"></ion-input>
-      </ion-item>
-      <ion-note color="danger" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">
-        Ingresa al menos 2 caracteres.
-      </ion-note>
+<ion-content [fullscreen]="true" class="cliente-edit-background">
+  <div class="cliente-edit-wrapper">
+    <div class="cliente-edit-card">
 
-      <ion-item>
-        <ion-input label="Apellidos" label-placement="floating" formControlName="apellidos"></ion-input>
-      </ion-item>
+      <ng-container *ngIf="!loading; else skel">
+        <!-- ======== FORM CLIENTE ======== -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="form-section-title">
+            <h1>Datos del cliente</h1>
+            <p>Actualiza la información básica y el estado del cliente.</p>
+          </div>
 
-      <ion-item>
-        <ion-input
-          label="Teléfono (10 dígitos) *"
-          label-placement="floating"
-          inputmode="numeric"
-          formControlName="telefono">
-        </ion-input>
-      </ion-item>
-      <ion-note color="danger" *ngIf="form.controls.telefono.touched && form.controls.telefono.invalid">
-        Debe tener exactamente 10 dígitos.
-      </ion-note>
+          <ion-item class="form-item">
+            <ion-input
+              label="Nombre *"
+              label-placement="floating"
+              formControlName="nombre">
+            </ion-input>
+          </ion-item>
+          <ion-note
+            color="danger"
+            class="form-error"
+            *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">
+            Ingresa al menos 2 caracteres.
+          </ion-note>
 
-      <ion-item lines="none">
-        <ion-toggle formControlName="estado">Activo</ion-toggle>
-      </ion-item>
-
-      <ion-button type="submit" expand="block" [disabled]="saving || form.invalid">
-        {{ saving ? 'Guardando...' : 'Guardar cambios' }}
-      </ion-button>
-    </form>
-
-    <!-- ======== DOMICILIOS RELACIONADOS ======== -->
-    <ion-card class="ion-margin-top">
-      <ion-card-header>
-        <ion-card-title>Domicilios del cliente</ion-card-title>
-      </ion-card-header>
-
-      <ion-card-content>
-        <ng-container *ngIf="!loadingDomicilios; else domSkel">
-
-          <ion-item *ngIf="!domicilios.length">
-            <ion-label color="medium">
-              Este cliente aún no tiene domicilios registrados.
-            </ion-label>
+          <ion-item class="form-item">
+            <ion-input
+              label="Apellidos"
+              label-placement="floating"
+              formControlName="apellidos">
+            </ion-input>
           </ion-item>
 
-          <ion-list *ngIf="domicilios.length">
-            <ion-item *ngFor="let d of domicilios">
-              <ion-label>
-                <h2>{{ d.calle }} #{{ d.numero }}</h2>
-                <p>{{ d.colonia }}, CP: {{ d.cp }}</p>
-                <p *ngIf="d.referencia">Ref: {{ d.referencia }}</p>
-                <ion-badge [color]="d.estado ? 'success' : 'medium'">
-                  {{ d.estado ? 'Activo' : 'Inactivo' }}
-                </ion-badge>
-                <p class="ion-text-wrap">
-                  <small>docId: {{ d.documentId || '—' }}</small>
-                </p>
-              </ion-label>
+          <ion-item class="form-item">
+            <ion-input
+              label="Teléfono (10 dígitos) *"
+              label-placement="floating"
+              inputmode="numeric"
+              formControlName="telefono">
+            </ion-input>
+          </ion-item>
+          <ion-note
+            color="danger"
+            class="form-error"
+            *ngIf="form.controls.telefono.touched && form.controls.telefono.invalid">
+            Debe tener exactamente 10 dígitos.
+          </ion-note>
 
-              <ion-button fill="outline" slot="end" size="small" (click)="abrirModalDomicilio(d)">
-                Editar
-              </ion-button>
-            </ion-item>
-          </ion-list>
+          <ion-item lines="none" class="form-toggle-item">
+            <ion-toggle formControlName="estado">Activo</ion-toggle>
+          </ion-item>
 
-        </ng-container>
+          <ion-button
+            type="submit"
+            expand="block"
+            class="form-submit-btn"
+            [disabled]="saving || form.invalid">
+            {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+          </ion-button>
+        </form>
 
-        <ng-template #domSkel>
-          <ion-list>
-            <ion-item *ngFor="let s of [1,2]">
-              <ion-skeleton-text [animated]="true" style="width: 90%"></ion-skeleton-text>
-            </ion-item>
-          </ion-list>
-        </ng-template>
-      </ion-card-content>
-    </ion-card>
+        <!-- ======== DOMICILIOS RELACIONADOS ======== -->
+        <ion-card class="domicilios-card ion-margin-top">
+          <ion-card-header>
+            <ion-card-title>Domicilios del cliente</ion-card-title>
+          </ion-card-header>
 
-  </ng-container>
+          <ion-card-content>
+            <ng-container *ngIf="!loadingDomicilios; else domSkel">
 
-  <ng-template #skel>
-    <ion-list>
-      <ion-item *ngFor="let s of [1,2,3]">
-        <ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text>
-      </ion-item>
-    </ion-list>
-  </ng-template>
+              <ion-item *ngIf="!domicilios.length" class="domicilios-empty">
+                <ion-label color="medium">
+                  Este cliente aún no tiene domicilios registrados.
+                </ion-label>
+              </ion-item>
+
+              <ion-list *ngIf="domicilios.length" class="domicilios-list">
+                <ion-item *ngFor="let d of domicilios" class="domicilio-item">
+                  <ion-label>
+                    <h2>{{ d.calle }} #{{ d.numero }}</h2>
+                    <p>{{ d.colonia }}, CP: {{ d.cp }}</p>
+                    <p *ngIf="d.referencia">Ref: {{ d.referencia }}</p>
+                    <ion-badge [color]="d.estado ? 'success' : 'medium'">
+                      {{ d.estado ? 'Activo' : 'Inactivo' }}
+                    </ion-badge>
+                    <p class="ion-text-wrap domicilio-id">
+                      <small>docId: {{ d.documentId || '—' }}</small>
+                    </p>
+                  </ion-label>
+
+                  <ion-button
+                    fill="outline"
+                    slot="end"
+                    size="small"
+                    class="domicilio-edit-btn"
+                    (click)="abrirModalDomicilio(d)">
+                    Editar
+                  </ion-button>
+                </ion-item>
+              </ion-list>
+
+            </ng-container>
+
+            <ng-template #domSkel>
+              <ion-list class="domicilios-skeleton-list">
+                <ion-item *ngFor="let s of [1,2]" class="domicilios-skeleton-item">
+                  <ion-skeleton-text [animated]="true" style="width: 90%"></ion-skeleton-text>
+                </ion-item>
+              </ion-list>
+            </ng-template>
+          </ion-card-content>
+        </ion-card>
+
+      </ng-container>
+
+      <!-- skeleton principal mientras carga el cliente -->
+      <ng-template #skel>
+        <ion-list class="cliente-edit-skeleton-list">
+          <ion-item *ngFor="let s of [1,2,3]" class="cliente-edit-skeleton-item">
+            <ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text>
+          </ion-item>
+        </ion-list>
+      </ng-template>
+
+    </div>
+  </div>
 
   <!-- ======== MODAL EDITAR DOMICILIO ======== -->
-  <ion-modal [isOpen]="domModalOpen" (didDismiss)="cerrarModalDomicilio()">
+  <ion-modal
+    class="domicilio-modal"
+    [isOpen]="domModalOpen"
+    (didDismiss)="cerrarModalDomicilio()">
     <ng-template>
-      <ion-header>
+      <ion-header class="domicilio-modal-header">
         <ion-toolbar>
           <ion-title>Editar domicilio</ion-title>
           <ion-buttons slot="end">
@@ -112,9 +150,10 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
+      <ion-content class="domicilio-modal-content">
         <form [formGroup]="domForm" (ngSubmit)="guardarDomicilio()">
-          <ion-item>
+
+          <ion-item class="form-item">
             <ion-input
               label="Calle"
               label-placement="floating"
@@ -122,7 +161,7 @@
             </ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item class="form-item">
             <ion-input
               label="Número"
               label-placement="floating"
@@ -130,7 +169,7 @@
             </ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item class="form-item">
             <ion-input
               label="Colonia"
               label-placement="floating"
@@ -138,7 +177,7 @@
             </ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item class="form-item">
             <ion-input
               label="CP"
               label-placement="floating"
@@ -147,7 +186,7 @@
             </ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item class="form-item">
             <ion-textarea
               label="Referencia"
               label-placement="floating"
@@ -155,18 +194,18 @@
             </ion-textarea>
           </ion-item>
 
-          <ion-item lines="none">
+          <ion-item lines="none" class="form-toggle-item">
             <ion-toggle formControlName="estado">Activo</ion-toggle>
           </ion-item>
 
           <ion-button
             expand="block"
-            type="submit">
+            type="submit"
+            class="form-submit-btn">
             Guardar domicilio
           </ion-button>
         </form>
       </ion-content>
     </ng-template>
   </ion-modal>
-
 </ion-content>

@@ -516,3 +516,21 @@ ion-searchbar {
   --background: #111827;
   --color: #ffffff;
 }
+
+.fecha-datetime {
+  --background: #ffffff;
+  --ion-text-color: #213549;
+
+  /* Color de día seleccionado / enfoque */
+  --ion-color-primary: #f28b3b; // el naranja que usas en el resto
+
+  /* Pasos de color para que no se vea tan oscuro */
+  --ion-color-step-50:  #fff7f2;
+  --ion-color-step-100: #fbe9dd;
+  --ion-color-step-150: #f5dcc9;
+}
+
+.fecha-datetime {
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}

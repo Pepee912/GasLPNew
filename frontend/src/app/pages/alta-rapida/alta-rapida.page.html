@@ -1,259 +1,281 @@
-<ion-header>
-  <ion-toolbar>
+<ion-header class="alta-header">
+  <ion-toolbar class="alta-toolbar">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/clientes"></ion-back-button>
     </ion-buttons>
-    <ion-title>Alta rápida (Cliente + Domicilio + Servicio)</ion-title>
+    <ion-title>Alta rápida</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content [fullscreen]="true" class="alta-background">
 
-  <!-- ===================== CLIENTE ===================== -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Cliente</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
+  <div class="alta-wrapper">
+    <div class="alta-card">
 
-      <form [formGroup]="fCliente" (ngSubmit)="$event.preventDefault()">
-
-        <!-- Teléfono solo cuando NO hay cliente existente -->
-        <ion-item *ngIf="!clienteExistente">
-          <ion-input
-            label="Teléfono (10 dígitos) *"
-            label-placement="floating"
-            inputmode="numeric"
-            formControlName="telefono">
-          </ion-input>
-        </ion-item>
-
-        <!-- Nuevo cliente -->
-        <ng-container *ngIf="!clienteExistente">
-          <ion-item>
-            <ion-input
-              label="Nombre"
-              label-placement="floating"
-              formControlName="nombre">
-            </ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-input
-              label="Apellidos"
-              label-placement="floating"
-              formControlName="apellidos">
-            </ion-input>
-          </ion-item>
-          <ion-item lines="none">
-            <ion-toggle formControlName="activo">Activo</ion-toggle>
-          </ion-item>
-        </ng-container>
-
-        <!-- Cliente existente (solo datos, sin input de teléfono) -->
-        <ng-container *ngIf="clienteExistente">
-          <ion-item lines="none">
-            <ion-label>
-              <h2>
-                {{ clienteExistente.nombre }}
-                {{ clienteExistente.apellidos }}
-              </h2>
-              <p>Tel: {{ clienteExistente.telefono }}</p>
-              <small>
-                docId: {{ clienteExistente.documentId || '—' }}
-              </small>
-            </ion-label>
-          </ion-item>
-        </ng-container>
-
-      </form>
-
-    </ion-card-content>
-  </ion-card>
-
-  <!-- ===================== DOMICILIO ===================== -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Domicilio</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-
-      <!-- Toggle solo si HAY domicilios existentes -->
-      <ion-item *ngIf="domiciliosExistentes.length">
-        <ion-toggle
-          [(ngModel)]="usarDomicilioExistente"
-          [ngModelOptions]="{standalone: true}">
-          Usar domicilio existente
-        </ion-toggle>
-      </ion-item>
-
-      <!-- Selección de domicilio existente -->
-      <div *ngIf="usarDomicilioExistente && domiciliosExistentes.length">
-        <ion-item>
-          <ion-select
-            label="Selecciona un domicilio"
-            [(ngModel)]="domicilioElegidoDocumentId"
-            [ngModelOptions]="{standalone: true}">
-            <ion-select-option
-              *ngFor="let d of domiciliosExistentes"
-              [value]="d.documentId || d.id">
-              {{ d.calle }}, #{{ d.numero }}, {{ d.colonia }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
+      <!-- Título / descripción global -->
+      <div class="alta-top">
+        <div>
+          <h1 class="alta-title">Alta rápida</h1>
+          <p class="alta-subtitle">
+            Registra cliente, domicilio y, si lo deseas, un servicio programado.
+          </p>
+        </div>
       </div>
 
-      <!-- Formulario de domicilio NUEVO -->
-      <div *ngIf="!usarDomicilioExistente" [formGroup]="fDom">
-        <ion-item>
-          <ion-input
-            label="Calle"
-            label-placement="floating"
-            formControlName="calle">
-          </ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-input
-            label="Número"
-            label-placement="floating"
-            formControlName="numero">
-          </ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-input
-            label="Colonia"
-            label-placement="floating"
-            formControlName="colonia">
-          </ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-input
-            label="CP"
-            label-placement="floating"
-            formControlName="cp"
-            inputmode="numeric">
-          </ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-textarea
-            label="Referencia"
-            label-placement="floating"
-            formControlName="referencia">
-          </ion-textarea>
-        </ion-item>
-        <ion-item lines="none">
-          <ion-toggle formControlName="activo">Activo</ion-toggle>
-        </ion-item>
+      <!-- ===================== CLIENTE ===================== -->
+      <ion-card class="alta-section-card alta-cliente-card">
+        <ion-card-header>
+          <ion-card-title>Cliente</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
 
-        <ion-note color="medium">
-          Para crear un servicio debes capturar <strong>calle</strong>,
-          <strong>número</strong>, <strong>colonia</strong> y
-          <strong>código postal</strong>. La referencia es opcional.
-        </ion-note>
-      </div>
+          <form [formGroup]="fCliente" (ngSubmit)="$event.preventDefault()">
 
-    </ion-card-content>
-  </ion-card>
+            <!-- Teléfono solo cuando NO hay cliente existente -->
+            <ion-item *ngIf="!clienteExistente" class="form-item">
+              <ion-input
+                label="Teléfono (10 dígitos) *"
+                label-placement="floating"
+                inputmode="numeric"
+                formControlName="telefono">
+              </ion-input>
+            </ion-item>
 
-  <!-- ===================== BOTÓN PARA MOSTRAR SERVICIO (solo nuevo cliente) ===================== -->
-  <ion-card *ngIf="!clienteExistente">
-    <ion-card-content>
-      <ion-button
-        expand="block"
-        fill="outline"
-        (click)="showServicio = !showServicio">
-        <ion-icon
-          slot="start"
-          [name]="showServicio ? 'remove-circle-outline' : 'add-circle-outline'">
-        </ion-icon>
-        {{ showServicio ? 'Ocultar sección de servicio' : 'Agregar servicio (opcional)' }}
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+            <!-- Nuevo cliente -->
+            <ng-container *ngIf="!clienteExistente">
+              <ion-item class="form-item">
+                <ion-input
+                  label="Nombre"
+                  label-placement="floating"
+                  formControlName="nombre">
+                </ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input
+                  label="Apellidos"
+                  label-placement="floating"
+                  formControlName="apellidos">
+                </ion-input>
+              </ion-item>
+              <ion-item lines="none" class="form-toggle-item">
+                <ion-toggle formControlName="activo">Activo</ion-toggle>
+              </ion-item>
+            </ng-container>
 
-  <!-- ===================== SERVICIO ===================== -->
-  <ion-card *ngIf="showServicio || clienteExistente">
-    <ion-card-header>
-      <ion-card-title>Servicio (opcional)</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
+            <!-- Cliente existente (solo datos, sin input de teléfono) -->
+            <ng-container *ngIf="clienteExistente">
+              <ion-item lines="none" class="cliente-existente-item">
+                <ion-label>
+                  <h2>
+                    {{ clienteExistente.nombre }}
+                    {{ clienteExistente.apellidos }}
+                  </h2>
+                  <p>Tel: {{ clienteExistente.telefono }}</p>
+                  <small>
+                    docId: {{ clienteExistente.documentId || '—' }}
+                  </small>
+                </ion-label>
+              </ion-item>
+            </ng-container>
 
-      <form [formGroup]="fSrv" (ngSubmit)="$event.preventDefault()">
+          </form>
 
-        <ion-item>
-          <ion-select
-            label="Tipo de servicio (opcional)"
-            label-placement="floating"
-            formControlName="tipo_servicio"
-            interface="popover"
-            placeholder="Selecciona un tipo (si aplica)">
-            <ion-select-option
-              *ngFor="let t of tipoServicios"
-              [value]="t.documentId || t.id">
-              {{ t.nombre }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-note color="medium" *ngIf="loadingCatalogos">Cargando tipos…</ion-note>
-        <ion-note color="danger" *ngIf="!loadingCatalogos && !tipoServicios.length">
-          No hay tipos de servicio activos.
-        </ion-note>
+        </ion-card-content>
+      </ion-card>
 
-        <ion-item>
-          <ion-select
-            label="Ruta (opcional)"
-            label-placement="floating"
-            formControlName="ruta"
-            interface="popover"
-            placeholder="Selecciona una ruta (si aplica)">
-            <ion-select-option
-              *ngFor="let r of rutas"
-              [value]="r.documentId || r.id">
-              {{ r.nombre }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-note color="medium" *ngIf="loadingCatalogos">Cargando rutas…</ion-note>
-        <ion-note color="warning" *ngIf="!loadingCatalogos && !rutas.length">
-          No hay rutas activas o aún no has creado rutas.
-        </ion-note>
+      <!-- ===================== DOMICILIO ===================== -->
+      <ion-card class="alta-section-card alta-domicilio-card">
+        <ion-card-header>
+          <ion-card-title>Domicilio</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
 
-        <ion-item>
-          <ion-label position="stacked">
-            Fecha programada (solo si se crea servicio)
-          </ion-label>
-          <ion-datetime
-            formControlName="fecha_programado"
-            presentation="date-time"
-            minute-values="0,15,30,45"
-            locale="es-MX"
-            hour-cycle="h23"
-            color="primary"
-            [min]="minFechaProgramado">
-          </ion-datetime>
-        </ion-item>
-        <ion-note color="medium">
-          Si no seleccionas tipo de servicio, solo se guardará el cliente
-          (y el domicilio si lo capturas).
-        </ion-note>
+          <!-- Toggle solo si HAY domicilios existentes -->
+          <ion-item *ngIf="domiciliosExistentes.length" class="form-toggle-item">
+            <ion-toggle
+              [(ngModel)]="usarDomicilioExistente"
+              [ngModelOptions]="{standalone: true}">
+              Usar domicilio existente
+            </ion-toggle>
+          </ion-item>
 
-        <ion-item>
-          <ion-textarea
-            label="Observación (opcional)"
-            label-placement="floating"
-            formControlName="observacion">
-          </ion-textarea>
-        </ion-item>
+          <!-- Selección de domicilio existente -->
+          <div *ngIf="usarDomicilioExistente && domiciliosExistentes.length">
+            <ion-item class="form-item">
+              <ion-select
+                label="Selecciona un domicilio"
+                label-placement="floating"
+                [(ngModel)]="domicilioElegidoDocumentId"
+                [ngModelOptions]="{standalone: true}">
+                <ion-select-option
+                  *ngFor="let d of domiciliosExistentes"
+                  [value]="d.documentId || d.id">
+                  {{ d.calle }}, #{{ d.numero }}, {{ d.colonia }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
 
-        <ion-button
-          expand="block"
-          type="button"
-          [disabled]="submitting || loadingCatalogos"
-          (click)="guardar()">
-          {{ submitting ? 'Guardando…' : 'Guardar' }}
-        </ion-button>
+          <!-- Formulario de domicilio NUEVO -->
+          <div *ngIf="!usarDomicilioExistente" [formGroup]="fDom">
+            <ion-item class="form-item">
+              <ion-input
+                label="Calle"
+                label-placement="floating"
+                formControlName="calle">
+              </ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input
+                label="Número"
+                label-placement="floating"
+                formControlName="numero">
+              </ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input
+                label="Colonia"
+                label-placement="floating"
+                formControlName="colonia">
+              </ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input
+                label="CP"
+                label-placement="floating"
+                formControlName="cp"
+                inputmode="numeric">
+              </ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-textarea
+                label="Referencia"
+                label-placement="floating"
+                formControlName="referencia">
+              </ion-textarea>
+            </ion-item>
+            <ion-item lines="none" class="form-toggle-item">
+              <ion-toggle formControlName="activo">Activo</ion-toggle>
+            </ion-item>
 
-      </form>
-    </ion-card-content>
-  </ion-card>
+            <ion-note color="medium" class="form-note">
+              Para crear un servicio debes capturar
+              <strong>calle</strong>, <strong>número</strong>,
+              <strong>colonia</strong> y <strong>código postal</strong>.
+              La referencia es opcional.
+            </ion-note>
+          </div>
 
+        </ion-card-content>
+      </ion-card>
+
+      <!-- ===================== BOTÓN PARA MOSTRAR SERVICIO (solo nuevo cliente) ===================== -->
+      <ion-card *ngIf="!clienteExistente" class="alta-section-card alta-toggle-servicio-card">
+        <ion-card-content>
+          <ion-button
+            expand="block"
+            fill="outline"
+            class="alta-toggle-servicio-btn"
+            (click)="showServicio = !showServicio">
+            <ion-icon
+              slot="start"
+              [name]="showServicio ? 'remove-circle-outline' : 'add-circle-outline'">
+            </ion-icon>
+            {{ showServicio ? 'Ocultar sección de servicio' : 'Agregar servicio (opcional)' }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- ===================== SERVICIO ===================== -->
+      <ion-card *ngIf="showServicio || clienteExistente" class="alta-section-card alta-servicio-card">
+        <ion-card-header>
+          <ion-card-title>Servicio (opcional)</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+
+          <form [formGroup]="fSrv" (ngSubmit)="$event.preventDefault()">
+
+            <ion-item class="form-item">
+              <ion-select
+                label="Tipo de servicio (opcional)"
+                label-placement="floating"
+                formControlName="tipo_servicio"
+                interface="popover"
+                placeholder="Selecciona un tipo (si aplica)">
+                <ion-select-option
+                  *ngFor="let t of tipoServicios"
+                  [value]="t.documentId || t.id">
+                  {{ t.nombre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+            <ion-note color="medium" *ngIf="loadingCatalogos" class="form-note">
+              Cargando tipos…
+            </ion-note>
+            <ion-note color="danger" *ngIf="!loadingCatalogos && !tipoServicios.length" class="form-note">
+              No hay tipos de servicio activos.
+            </ion-note>
+
+            <ion-item class="form-item">
+              <ion-select
+                label="Ruta (opcional)"
+                label-placement="floating"
+                formControlName="ruta"
+                interface="popover"
+                placeholder="Selecciona una ruta (si aplica)">
+                <ion-select-option
+                  *ngFor="let r of rutas"
+                  [value]="r.documentId || r.id">
+                  {{ r.nombre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+            <ion-note color="medium" *ngIf="loadingCatalogos" class="form-note">
+              Cargando rutas…
+            </ion-note>
+            <ion-note color="warning" *ngIf="!loadingCatalogos && !rutas.length" class="form-note">
+              No hay rutas activas o aún no has creado rutas.
+            </ion-note>
+
+            <ion-item class="form-item servicio-datetime-item">
+              <ion-label position="stacked">
+                Fecha programada (solo si se crea servicio)
+              </ion-label>
+              <ion-datetime
+                formControlName="fecha_programado"
+                presentation="date-time"
+                minute-values="0,15,30,45"
+                locale="es-MX"
+                hour-cycle="h23"
+                [min]="minFechaProgramado">
+              </ion-datetime>
+            </ion-item>
+            <ion-note color="medium" class="form-note">
+              Si no seleccionas tipo de servicio, solo se guardará el cliente
+              (y el domicilio si lo capturas).
+            </ion-note>
+
+            <ion-item class="form-item">
+              <ion-textarea
+                label="Observación (opcional)"
+                label-placement="floating"
+                formControlName="observacion">
+              </ion-textarea>
+            </ion-item>
+
+            <ion-button
+              expand="block"
+              type="button"
+              class="form-submit-btn"
+              [disabled]="submitting || loadingCatalogos"
+              (click)="guardar()">
+              {{ submitting ? 'Guardando…' : 'Guardar' }}
+            </ion-button>
+
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+    </div>
+  </div>
 </ion-content>

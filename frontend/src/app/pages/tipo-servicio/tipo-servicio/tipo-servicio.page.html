@@ -1,145 +1,163 @@
-<!-- src/app/pages/tipo-servicio/tipo-servicio.page.html -->
-
-<ion-header [translucent]="true">
-  <ion-toolbar>
+<ion-header [translucent]="true" class="tipo-header">
+  <ion-toolbar class="tipo-toolbar-main">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
+
     <ion-title>Tipos de servicio</ion-title>
 
     <ion-buttons slot="end">
       <ion-button (click)="abrirModalCrear()">
-        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Nuevo tipo
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="tipo-background">
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tipos de servicio</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="tipo-wrapper">
+    <div class="tipo-card">
 
-  <!-- Segmento Activos / Desactivados -->
-  <ion-segment [(ngModel)]="segment" (ionChange)="onSegmentChange($event)" class="ion-padding-horizontal">
-    <ion-segment-button value="activos">
-      <ion-label>Activos</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="inactivos">
-      <ion-label>Desactivados</ion-label>
-    </ion-segment-button>
-  </ion-segment>
+      <!-- Segmento Activos / Desactivados -->
+      <ion-toolbar class="tipo-toolbar-segment">
+        <ion-segment
+          class="tipo-segment"
+          [(ngModel)]="segment"
+          (ionChange)="onSegmentChange($event)">
+          <ion-segment-button value="activos">
+            <ion-label>Activos</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="inactivos">
+            <ion-label>Desactivados</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-toolbar>
 
-  <!-- Filtros -->
-  <ion-card class="ion-margin">
-    <ion-card-header>
-      <ion-card-title>Filtros</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item>
-        <ion-input
-          label="Nombre"
-          label-placement="stacked"
-          placeholder="Buscar por nombre de tipo de servicio"
-          [(ngModel)]="searchNombre">
-        </ion-input>
-      </ion-item>
+      <!-- Filtros -->
+      <ion-card class="tipo-filtros-card">
+        <ion-card-header>
+          <ion-card-title>Filtros</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item lines="none" class="filtro-item">
+            <ion-input
+              label="Nombre"
+              label-placement="stacked"
+              placeholder="Buscar por nombre de tipo de servicio"
+              [(ngModel)]="searchNombre">
+            </ion-input>
+          </ion-item>
 
-      <ion-grid>
-        <ion-row>
-          <ion-col size="6">
-            <ion-button expand="block" (click)="aplicarFiltros()">
-              Buscar
-            </ion-button>
-          </ion-col>
-          <ion-col size="6">
-            <ion-button
-              expand="block"
-              fill="clear"
-              color="medium"
-              (click)="limpiarFiltros()">
-              Limpiar
-            </ion-button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-card-content>
-  </ion-card>
+          <ion-grid class="tipo-filtros-actions">
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" (click)="aplicarFiltros()">
+                  Buscar
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button
+                  expand="block"
+                  fill="clear"
+                  color="medium"
+                  (click)="limpiarFiltros()">
+                  Limpiar
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
 
-  <ion-progress-bar *ngIf="loading" type="indeterminate"></ion-progress-bar>
+      <ion-progress-bar
+        *ngIf="loading"
+        type="indeterminate"
+        class="tipo-progress">
+      </ion-progress-bar>
 
-  <!-- Lista de Activos -->
-  <ng-container *ngIf="segment === 'activos'">
-    <ion-list *ngIf="tipoServiciosActivos.length; else noActivos" class="ion-margin-top">
-      <ion-item *ngFor="let tipo of tipoServiciosActivos">
-        <ion-label>
-          <h2>{{ tipo.nombre }}</h2>
-          <p>Servicios asociados: {{ tipo.servicios?.length || 0 }}</p>
-        </ion-label>
+      <!-- Lista de Activos -->
+      <ng-container *ngIf="segment === 'activos' && !loading">
+        <ion-list *ngIf="tipoServiciosActivos.length; else noActivos" class="tipo-list">
+          <ion-item *ngFor="let tipo of tipoServiciosActivos" class="tipo-item">
+            <ion-label>
+              <h2 class="tipo-nombre">{{ tipo.nombre }}</h2>
+              <p class="tipo-detalle">
+                Servicios asociados: {{ tipo.servicios?.length || 0 }}
+              </p>
+            </ion-label>
 
-        <ion-button fill="clear" (click)="abrirModalEditar(tipo)">
-          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-        </ion-button>
+            <ion-buttons slot="end" class="tipo-actions">
+              <ion-button fill="clear" (click)="abrirModalEditar(tipo)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
 
-        <!-- Desactivar (soft delete) -->
-        <ion-button
-          fill="clear"
-          color="danger"
-          (click)="confirmarDesactivar(tipo)">
-          <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
-    </ion-list>
+              <ion-button
+                fill="clear"
+                color="danger"
+                (click)="confirmarDesactivar(tipo)">
+                <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        </ion-list>
 
-    <ng-template #noActivos>
-      <div class="ion-text-center ion-margin-top">
-        <p>No hay tipos de servicio activos.</p>
-      </div>
-    </ng-template>
-  </ng-container>
+        <ng-template #noActivos>
+          <div class="tipo-empty-state">
+            <p>No hay tipos de servicio activos.</p>
+          </div>
+        </ng-template>
+      </ng-container>
 
-  <!-- Lista de Desactivados -->
-  <ng-container *ngIf="segment === 'inactivos'">
-    <ion-list *ngIf="tipoServiciosInactivos.length; else noInactivos" class="ion-margin-top">
-      <ion-item *ngFor="let tipo of tipoServiciosInactivos">
-        <ion-label>
-          <h2>{{ tipo.nombre }}</h2>
-          <p>Estado: Desactivado</p>
-          <p>Servicios asociados: {{ tipo.servicios?.length || 0 }}</p>
-        </ion-label>
+      <!-- Lista de Desactivados -->
+      <ng-container *ngIf="segment === 'inactivos' && !loading">
+        <ion-list *ngIf="tipoServiciosInactivos.length; else noInactivos" class="tipo-list">
+          <ion-item *ngFor="let tipo of tipoServiciosInactivos" class="tipo-item">
+            <ion-label>
+              <h2 class="tipo-nombre">{{ tipo.nombre }}</h2>
+              <p class="tipo-detalle">Estado: Desactivado</p>
+              <p class="tipo-detalle">
+                Servicios asociados: {{ tipo.servicios?.length || 0 }}
+              </p>
+            </ion-label>
 
-        <!-- Reactivar -->
-        <ion-button fill="clear" color="success" (click)="confirmarReactivar(tipo)">
-          <ion-icon slot="icon-only" name="refresh-circle-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
-    </ion-list>
+            <ion-buttons slot="end" class="tipo-actions">
+              <ion-button
+                fill="clear"
+                color="success"
+                (click)="confirmarReactivar(tipo)">
+                <ion-icon slot="icon-only" name="refresh-circle-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        </ion-list>
 
-    <ng-template #noInactivos>
-      <div class="ion-text-center ion-margin-top">
-        <p>No hay tipos de servicio desactivados.</p>
-      </div>
-    </ng-template>
-  </ng-container>
+        <ng-template #noInactivos>
+          <div class="tipo-empty-state">
+            <p>No hay tipos de servicio desactivados.</p>
+          </div>
+        </ng-template>
+      </ng-container>
 
-  <!-- Infinite scroll para el segmento actual -->
-  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)">
-    <ion-infinite-scroll-content
-      loadingSpinner="bubbles"
-      loadingText="Cargando más tipos de servicio...">
-    </ion-infinite-scroll-content>
-  </ion-infinite-scroll>
+      <!-- Infinite scroll para el segmento actual -->
+      <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)">
+        <ion-infinite-scroll-content
+          loadingSpinner="bubbles"
+          loadingText="Cargando más tipos de servicio...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+
+    </div>
+  </div>
 
   <!-- Modal Crear / Editar -->
-  <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()" class="tipo-modal">
     <ng-template>
-      <ion-header>
+      <ion-header class="tipo-modal-header">
         <ion-toolbar>
           <ion-title>
             {{ modo === 'crear' ? 'Nuevo tipo de servicio' : 'Editar tipo de servicio' }}
@@ -152,9 +170,9 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
+      <ion-content class="tipo-modal-content">
         <form [formGroup]="tipoForm" (ngSubmit)="guardar()">
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Nombre</ion-label>
             <ion-input
               formControlName="nombre"
@@ -162,17 +180,19 @@
               autocomplete="off">
             </ion-input>
           </ion-item>
+
           <ion-note
             color="danger"
+            class="form-error"
             *ngIf="tipoForm.get('nombre')?.touched && tipoForm.get('nombre')?.invalid">
             El nombre es obligatorio.
           </ion-note>
 
-          <div class="ion-margin-top ion-text-right">
+          <div class="modal-actions">
             <ion-button type="button" fill="outline" (click)="cerrarModal()">
               Cancelar
             </ion-button>
-            <ion-button type="submit">
+            <ion-button type="submit" class="form-submit-btn">
               {{ modo === 'crear' ? 'Crear' : 'Guardar' }}
             </ion-button>
           </div>

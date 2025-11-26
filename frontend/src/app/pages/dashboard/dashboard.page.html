@@ -136,7 +136,7 @@
       <!-- ================= Filtros superiores ================= -->
       <div
         class="filtros-container ion-padding-horizontal ion-padding-top"
-        *ngIf="!loading && !errorMessage && servicios.length > 0">
+        *ngIf="!loading && !errorMessage">
 
         <!-- Búsqueda en memoria -->
         <ion-searchbar
@@ -221,11 +221,25 @@
           *ngIf="vista === 'todos' && dateFilterMode === 'fecha'">
           <ion-label>Selecciona fecha</ion-label>
           <ion-datetime
+            class="fecha-datetime"
             presentation="date"
             [(ngModel)]="selectedFecha"
             (ionChange)="onFiltersChange()">
           </ion-datetime>
         </ion-item>
+
+        <!-- Botón limpiar filtros -->
+        <div class="filtros-actions">
+          <ion-button
+            size="small"
+            fill="clear"
+            (click)="clearFilters()"
+            [disabled]="loading">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Limpiar filtros
+          </ion-button>
+        </div>
+
       </div>
 
       <!-- ================= Skeleton loading ================= -->
@@ -321,7 +335,7 @@
               </div>
             </div>
 
-            <!-- Ruta y hora programada -->
+            <!-- Ruta y fecha/hora programada -->
             <div class="servicio-row two-cols">
               <div class="servicio-col">
                 <ion-icon name="map-outline"></ion-icon>
@@ -334,8 +348,10 @@
               <div class="servicio-col">
                 <ion-icon name="time-outline"></ion-icon>
                 <div>
-                  <p class="servicio-label">Hora programada</p>
-                  <p class="servicio-value">{{ getHoraProgramado(servicio) }}</p>
+                  <p class="servicio-label">Programado</p>
+                  <p class="servicio-value">
+                    {{ getFechaProgramado(servicio) }} • {{ getHoraProgramado(servicio) }}
+                  </p>
                 </div>
               </div>
             </div>

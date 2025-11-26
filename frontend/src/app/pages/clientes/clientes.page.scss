@@ -1,0 +1,369 @@
+/* ===================== HEADER CLIENTES ===================== */
+
+.clientes-header {
+  backdrop-filter: blur(10px);
+}
+
+/* Toolbar principal (título, back, botón nuevo) */
+.clientes-toolbar-main {
+  --background: #fff7f2;
+  --color: #213549;
+  --border-color: transparent;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.clientes-toolbar-main ion-title {
+  font-weight: 600;
+}
+
+.clientes-toolbar-main ion-back-button {
+  --color: #213549;
+}
+
+.clientes-toolbar-main ion-button {
+  --background: transparent;
+  --color: #ff7b3a;
+  --border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Toolbar del segmento (Activos / Inactivos) */
+.clientes-toolbar-segment {
+  --background: #fff5ed;
+  --border-color: rgba(255, 180, 135, 0.6);
+  border-top: 1px solid rgba(255, 180, 135, 0.5);
+  border-bottom: 1px solid rgba(255, 180, 135, 0.5);
+}
+
+/* Segmento similar al de HOY / TODOS del dashboard */
+.clientes-toolbar-segment ion-segment {
+  --background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  margin: 8px 12px 10px;
+  padding: 2px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+/* Colores del texto (para que NO desaparezca) */
+.clientes-toolbar-segment ion-segment-button {
+  --indicator-color: #ff7b3a;
+  --indicator-box-shadow: 0 6px 15px rgba(255, 123, 58, 0.45);
+  --color: #6b7280 !important;
+  --color-checked: #ffffff !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.clientes-toolbar-segment ion-segment-button::part(indicator) {
+  border-radius: 999px;
+}
+
+.clientes-toolbar-segment ion-segment-button::part(native) {
+  color: #6b7280 !important;
+}
+
+.clientes-toolbar-segment ion-segment-button.ion-activated::part(native) {
+  color: #ffffff !important;
+}
+
+/* ===================== FONDO Y CONTENEDOR PRINCIPAL ===================== */
+
+.clientes-background {
+  --background: linear-gradient(145deg, #fff7f2 0%, #ffe9db 40%, #ffe0c4 100%);
+  color: #213549;
+}
+
+.clientes-wrapper {
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 12px 24px;
+}
+
+.clientes-card {
+  width: 100%;
+  max-width: 1080px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.18);
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(255, 123, 58, 0.16);
+}
+
+/* Título / descripción */
+.clientes-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.clientes-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #213549;
+  margin: 0;
+}
+
+.clientes-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ===================== BÚSQUEDA RÁPIDA ===================== */
+
+.clientes-busqueda {
+  margin-top: 4px;
+}
+
+.clientes-busqueda-item {
+  --background: #ffffff;
+  --border-radius: 18px;
+  --inner-padding-start: 12px;
+  --inner-padding-end: 8px;
+  --border-color: rgba(229, 231, 235, 0.9);
+
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  margin-bottom: 4px;
+}
+
+.clientes-busqueda-item ion-input {
+  --color: #111827;
+}
+
+.clientes-busqueda-item ion-input::part(label) {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.clientes-busqueda-item ion-button {
+  --border-radius: 999px;
+}
+
+.clientes-busqueda-item ion-button[color="medium"] {
+  --color: #6b7280;
+}
+
+/* ===================== FILTROS AVANZADOS ===================== */
+
+.clientes-filtros-card {
+  --background: #fffaf6;
+  border-radius: 18px;
+  box-shadow: none;
+  border: 1px dashed rgba(255, 180, 135, 0.6);
+  margin-top: 4px;
+}
+
+.clientes-filtros-card ion-card-header {
+  padding-bottom: 4px;
+}
+
+.clientes-filtros-card ion-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #213549;
+}
+
+.clientes-filtros-card ion-item {
+  --background: transparent;
+  --inner-padding-start: 0;
+  --inner-padding-end: 0;
+  --border-color: transparent;
+  margin-top: 6px;
+}
+
+.clientes-filtros-card ion-input {
+  --color: #111827;
+}
+
+.clientes-filtros-card ion-input::part(label) {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.clientes-filtros-actions {
+  margin-top: 10px;
+}
+
+.clientes-filtros-actions ion-button {
+  --border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.clientes-filtros-actions ion-button[fill="clear"] {
+  --color: #6b7280;
+}
+
+/* ===================== LISTA DE CLIENTES ===================== */
+
+.clientes-list {
+  margin-top: 8px;
+  background: transparent;
+}
+
+.cliente-item {
+  --background: #ffffff;
+  --inner-padding-start: 12px;
+  --inner-padding-end: 8px;
+  --border-radius: 18px;
+  --min-height: 64px;
+  --border-color: rgba(229, 231, 235, 0.9);
+
+  margin-bottom: 8px;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+}
+
+.cliente-nombre {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cliente-telefono {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #4b5563;
+}
+
+.cliente-estado {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: #6b7280;
+}
+
+.cliente-estado strong {
+  color: #111827;
+}
+
+.cliente-id {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.cliente-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cliente-actions ion-button {
+  --border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* ===================== INFINITE SCROLL ===================== */
+
+ion-infinite-scroll-content {
+  --color: #6b7280;
+}
+
+/* ===================== SKELETONS ===================== */
+
+ion-skeleton-text {
+  border-radius: 999px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+
+@media (max-width: 992px) {
+  .clientes-card {
+    max-width: 960px;
+    padding: 18px 14px;
+  }
+
+  .clientes-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .clientes-wrapper {
+    padding: 16px 8px 20px;
+  }
+
+  .clientes-card {
+    border-radius: 18px;
+  }
+
+  .cliente-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .clientes-card {
+    padding: 14px 10px;
+  }
+
+  .clientes-title {
+    font-size: 1.4rem;
+  }
+}
+
+.clientes-empty-item {
+  --background: transparent;
+  --inner-padding-start: 12px;
+  --inner-padding-end: 12px;
+  --border-radius: 18px;
+  --border-color: transparent;
+  margin-top: 8px;
+}
+
+.clientes-empty-tip {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f9fafb; 
+}
+
+.clientes-empty-tip ion-icon {
+  font-size: 1.2rem;
+  color: #ff7b3a;
+}
+
+/* ===================== MENSAJES SIN DATOS ===================== */
+
+.clientes-empty-item {
+  --background: transparent;              /* sin barra negra */
+  --inner-padding-start: 12px;
+  --inner-padding-end: 12px;
+  --border-radius: 18px;
+  --border-color: transparent;
+  margin-top: 8px;
+}
+
+.clientes-empty-tip {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;                        
+}
+
+/* ===================== SKELETONS LISTA CLIENTES ===================== */
+
+.clientes-skeleton-list {
+  background: transparent;
+}
+
+.clientes-skeleton-item {
+  --background: transparent;              
+  --inner-padding-start: 12px;
+  --inner-padding-end: 12px;
+}

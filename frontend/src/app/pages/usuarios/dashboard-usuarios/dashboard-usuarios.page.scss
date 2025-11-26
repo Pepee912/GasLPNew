@@ -1,0 +1,378 @@
+/* ============== HEADER ============== */
+
+.usuarios-header {
+  backdrop-filter: blur(10px);
+}
+
+.usuarios-toolbar-main {
+  --background: #fff7f2;
+  --color: #213549;
+  --border-color: transparent;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.usuarios-toolbar-main ion-title {
+  font-weight: 600;
+}
+
+.usuarios-toolbar-main ion-back-button {
+  --color: #213549;
+}
+
+.usuarios-toolbar-main ion-button {
+  --background: transparent;
+  --color: #ff7b3a;
+  --border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* ============== FONDO Y CARD PRINCIPAL ============== */
+
+.usuarios-background {
+  --background: linear-gradient(145deg, #fff7f2 0%, #ffe9db 40%, #ffe0c4 100%);
+  color: #213549;
+}
+
+.usuarios-wrapper {
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 12px 24px;
+}
+
+.usuarios-card {
+  width: 100%;
+  max-width: 1080px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.18);
+  padding: 20px 20px 18px;
+  border: 1px solid rgba(255, 123, 58, 0.16);
+}
+
+/* ============== LOADING / EMPTY ============== */
+
+.usuarios-loading {
+  text-align: center;
+  padding: 20px 0;
+  color: #6b7280;
+}
+
+.usuarios-loading p {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.usuarios-empty {
+  text-align: center;
+  padding: 24px 8px 8px;
+}
+
+.usuarios-empty h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #213549;
+}
+
+.usuarios-empty p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ============== FILTROS ============== */
+
+.usuarios-filtros-card {
+  --background: #fffaf6;
+  border-radius: 18px;
+  box-shadow: none;
+  border: 1px dashed rgba(255, 180, 135, 0.8);
+  margin-bottom: 10px;
+}
+
+.usuarios-filtros-card ion-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #213549;
+}
+
+.filtro-item {
+  --background: transparent;
+  --inner-padding-start: 0;
+  --inner-padding-end: 0;
+  --border-color: transparent;
+  margin-top: 8px;
+}
+
+.filtro-item ion-input,
+.filtro-item ion-select {
+  --color: #111827;
+}
+
+.filtro-item ion-input::part(label),
+.filtro-item ion-select::part(label) {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.usuarios-filtros-actions {
+  margin-top: 10px;
+}
+
+.usuarios-filtros-actions ion-button {
+  --border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.usuarios-filtros-actions ion-button[fill="clear"] {
+  --color: #6b7280;
+}
+
+/* ============== LISTA DE USUARIOS ============== */
+
+.usuarios-list {
+  margin-top: 8px;
+  background: transparent;
+}
+
+.usuario-item {
+  --background: #ffffff;
+  --inner-padding-start: 12px;
+  --inner-padding-end: 8px;
+  --border-radius: 18px;
+  --border-color: rgba(229, 231, 235, 0.9);
+  margin-bottom: 8px;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+}
+
+.usuario-username {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-bloqueado {
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.usuario-email {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #4b5563;
+}
+
+.usuario-detail {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: #6b7280;
+}
+
+.usuario-detail strong {
+  color: #111827;
+}
+
+.usuario-rol-chip {
+  --background: #fff7f2;
+  --color: #f97316;
+  --border-color: rgba(248, 153, 72, 0.7);
+  text-transform: none;
+  font-weight: 500;
+}
+
+.usuario-btn-icon {
+  --color: #6b7280;
+}
+
+.usuario-bloqueo-btn {
+  --border-radius: 999px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* ============== MODALES ============== */
+
+.usuarios-modal::part(content) {
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.28);
+}
+
+.usuarios-modal-header ion-toolbar {
+  --background: #fff7f2;
+  --color: #213549;
+  --border-color: rgba(255, 180, 135, 0.6);
+}
+
+.usuarios-modal-header ion-title {
+  font-weight: 600;
+}
+
+.usuarios-modal-header ion-button {
+  --color: #ff7b3a;
+  text-transform: none;
+}
+
+.usuarios-modal-content {
+  --background: #fffaf6;
+  padding: 16px;
+}
+
+/* Reutilizamos estilos de formularios de otras páginas */
+
+.form-item {
+  --background: #ffffff;
+  --border-radius: 14px;
+  --inner-padding-start: 10px;
+  --inner-padding-end: 10px;
+  --border-color: rgba(229, 231, 235, 0.9);
+  --min-height: 44px;
+  margin-top: 8px;
+}
+
+.form-item ion-input,
+.form-item ion-select {
+  --color: #111827;
+}
+
+.form-item ion-input::part(label),
+.form-item ion-select::part(label) {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.form-toggle-item {
+  --background: #fff7f2;
+  --color: #213549;
+  --inner-padding-start: 10px;
+  --inner-padding-end: 10px;
+  --border-radius: 14px;
+  --border-color: rgba(229, 231, 235, 0.6);
+  --min-height: 44px;
+  margin-top: 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.form-toggle-item ion-toggle {
+  --handle-background: #ffffff;
+  --handle-background-checked: #ffffff;
+  --background: #e5e7eb;
+  --background-checked: #ff7b3a;
+  color: #213549;
+  font-weight: 500;
+}
+
+.modal-actions {
+  margin-top: 16px;
+}
+
+.form-submit-btn {
+  --border-radius: 999px;
+  --background: #ff7b3a;
+  --background-activated: #f97316;
+  --background-focused: #ff7b3a;
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ============== RESPONSIVE ============== */
+
+@media (max-width: 768px) {
+  .usuarios-wrapper {
+    padding: 16px 8px 20px;
+  }
+
+  .usuarios-card {
+    border-radius: 18px;
+    padding: 16px 14px;
+  }
+
+  .usuario-bloqueo-btn {
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .usuarios-card {
+    padding: 14px 10px;
+  }
+}
+
+/* ==== Colores legibles en filtros de usuarios ==== */
+
+/* Label "Buscar", "Rol", "Estado" */
+.usuarios-filtros-card .filtro-item ion-label {
+  color: #6b7280 !important;  
+  font-size: 0.85rem;
+}
+
+/* Input de búsqueda */
+.usuarios-filtros-card .filtro-item ion-input {
+  --color: #111827 !important;          
+}
+
+.usuarios-filtros-card .filtro-item ion-input::part(label) {
+  color: #6b7280 !important;            
+}
+
+.usuarios-filtros-card .filtro-item ion-input::part(text) {
+  color: #111827 !important;            
+}
+
+.usuarios-filtros-card .filtro-item ion-input::part(placeholder) {
+  color: #9ca3af !important;            
+}
+
+/* Selects de Rol y Estado */
+.usuarios-filtros-card .filtro-item ion-select {
+  color: #111827 !important;
+  --placeholder-color: #9ca3af !important;
+}
+
+.usuarios-filtros-card .filtro-item ion-select::part(text) {
+  color: #111827 !important;             
+}
+
+.usuarios-filtros-card .filtro-item ion-select::part(placeholder) {
+  color: #9ca3af !important;
+}
+
+/* ====== Colores legibles en inputs/selects de los MODALES ====== */
+
+.usuarios-modal-content .form-item ion-input,
+.usuarios-modal-content .form-item ion-select {
+  --color: #111827 !important;              
+}
+
+/* Label “Nombre de usuario”, “Correo”, “Rol”, etc. */
+.usuarios-modal-content .form-item ion-input::part(label),
+.usuarios-modal-content .form-item ion-select::part(label) {
+  color: #6b7280 !important;                
+  font-size: 0.85rem;
+}
+
+/* Texto real */
+.usuarios-modal-content .form-item ion-input::part(text),
+.usuarios-modal-content .form-item ion-select::part(text) {
+  color: #111827 !important;
+}
+
+/* Placeholders (correo@ejemplo.com, etc.) */
+.usuarios-modal-content .form-item ion-input::part(placeholder),
+.usuarios-modal-content .form-item ion-select::part(placeholder) {
+  color: #9ca3af !important;                
+}
+
+/* Para que el valor seleccionado del select de Rol no se vea “lavado” */
+.usuarios-modal-content .form-item ion-select {
+  --placeholder-color: #9ca3af !important;
+}

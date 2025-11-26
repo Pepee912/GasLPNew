@@ -1,5 +1,5 @@
-<ion-header>
-  <ion-toolbar>
+<ion-header class="clientes-header">
+  <ion-toolbar class="clientes-toolbar-main">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
@@ -10,7 +10,7 @@
   </ion-toolbar>
 
   <!-- Segmento Activos / Inactivos -->
-  <ion-toolbar>
+  <ion-toolbar class="clientes-toolbar-segment">
     <ion-segment [(ngModel)]="segmentValue" (ionChange)="onSegmentChange()">
       <ion-segment-button value="activos">
         <ion-label>Activos</ion-label>
@@ -22,182 +22,218 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-
-  <!-- Búsqueda por teléfono -->
-  <ion-item>
-    <ion-input
-      label="Buscar por teléfono"
-      label-placement="floating"
-      placeholder="4921234567"
-      [(ngModel)]="telefono"
-      (ngModelChange)="onTelefonoChange($event)">
-    </ion-input>
-    <ion-button slot="end" (click)="buscarPorTelefono()">Buscar</ion-button>
-    <ion-button slot="end" fill="clear" (click)="clearSearch()">Limpiar</ion-button>
-  </ion-item>
+<ion-content [fullscreen]="true" class="clientes-background">
 
   <ion-refresher slot="fixed" (ionRefresh)="load($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Filtros avanzados -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Filtros adicionales</ion-card-title>
-    </ion-card-header>
+  <div class="clientes-wrapper">
+    <div class="clientes-card">
 
-    <ion-card-content>
-      <ion-item>
-        <ion-input
-          label="Nombre o apellidos"
-          label-placement="stacked"
-          placeholder="Ej. Juan Pérez"
-          [(ngModel)]="nombreFiltro">
-        </ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-input
-          label="Colonia"
-          label-placement="stacked"
-          placeholder="Ej. Centro"
-          [(ngModel)]="coloniaFiltro">
-        </ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-input
-          label="Código Postal"
-          label-placement="stacked"
-          type="number"
-          placeholder="Ej. 98000"
-          [(ngModel)]="cpFiltro">
-        </ion-input>
-      </ion-item>
-
-      <ion-grid>
-        <ion-row>
-          <ion-col size="6">
-            <ion-button expand="block" (click)="aplicarFiltrosAvanzados()">
-              Buscar
-            </ion-button>
-          </ion-col>
-          <ion-col size="6">
-            <ion-button
-              expand="block"
-              fill="clear"
-              color="medium"
-              (click)="limpiarFiltrosAvanzados()">
-              Limpiar
-            </ion-button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Mensaje cuando no hay teléfono y no hay clientes -->
-  <ion-item lines="none" *ngIf="!telefono && !clientes.length && !loading && !searching">
-    <ion-label color="medium">
-      <ion-icon name="search-outline" slot="start"></ion-icon>
-      Ingresa un número de teléfono o desliza hacia abajo para ver clientes.
-    </ion-label>
-  </ion-item>
-
-  <ng-container *ngIf="!loading && !searching; else skeletons">
-
-    <ion-list *ngIf="clientes?.length; else noData">
-      <ion-item *ngFor="let c of clientes">
-        <ion-label>
-          <h2>
-            {{ c.attributes?.nombre || c.nombre }}
-            {{ c.attributes?.apellidos || c.apellidos }}
-          </h2>
-          <p>Tel: {{ c.attributes?.telefono || c.telefono }}</p>
-
-          <p>
-            Estado:
-            {{
-              (c.attributes?.estado ?? c.estado)
-                ? 'Activo'
-                : 'Inactivo'
-            }}
+      <!-- Título / descripción -->
+      <div class="clientes-top">
+        <div>
+          <h1 class="clientes-title">Clientes</h1>
+          <p class="clientes-subtitle">
+            Busca, filtra y administra los clientes del sistema.
           </p>
+        </div>
+      </div>
 
-          <small>
-            ID: {{ c.id }} |
-            docId: {{ c.documentId || c.attributes?.documentId || '—' }}
-          </small>
-        </ion-label>
+      <!-- ================== Búsqueda rápida ================== -->
+      <div class="clientes-busqueda">
+        <ion-item lines="none" class="clientes-busqueda-item">
+          <ion-input
+            label="Buscar por teléfono"
+            label-placement="floating"
+            placeholder="4921234567"
+            [(ngModel)]="telefono"
+            (ngModelChange)="onTelefonoChange($event)">
+          </ion-input>
 
-        <ion-buttons slot="end">
-
-          <!-- Botón agregar servicio: solo en activos -->
-          <ion-button
-            *ngIf="segmentValue === 'activos'"
-            color="primary"
-            [routerLink]="['/callcenter/alta-rapida']"
-            [state]="{ telefono: (c.attributes?.telefono || c.telefono) }">
-            Agregar servicio
+          <ion-button slot="end" size="small" (click)="buscarPorTelefono()">
+            Buscar
           </ion-button>
 
-          <!-- Editar: solo en activos -->
           <ion-button
-            *ngIf="segmentValue === 'activos'"
+            slot="end"
+            size="small"
+            fill="clear"
             color="medium"
-            (click)="onEdit(c)">
-            Editar
+            (click)="clearSearch()">
+            Limpiar
           </ion-button>
+        </ion-item>
+      </div>
 
-          <!-- Desactivar: solo en activos -->
-          <ion-button
-            *ngIf="segmentValue === 'activos'"
-            color="warning"
-            (click)="onDelete(c)">
-            Desactivar
-          </ion-button>
+      <!-- ================== Filtros avanzados ================== -->
+      <ion-card class="clientes-filtros-card">
+        <ion-card-header>
+          <ion-card-title>Filtros adicionales</ion-card-title>
+        </ion-card-header>
 
-          <!-- Reactivar: solo en inactivos -->
-          <ion-button
-            *ngIf="segmentValue === 'inactivos'"
-            color="success"
-            (click)="onReactivate(c)">
-            Reactivar
-          </ion-button>
+        <ion-card-content>
+          <ion-item lines="none">
+            <ion-input
+              label="Nombre o apellidos"
+              label-placement="stacked"
+              placeholder="Ej. Juan Pérez"
+              [(ngModel)]="nombreFiltro">
+            </ion-input>
+          </ion-item>
 
-        </ion-buttons>
+          <ion-item lines="none">
+            <ion-input
+              label="Colonia"
+              label-placement="stacked"
+              placeholder="Ej. Centro"
+              [(ngModel)]="coloniaFiltro">
+            </ion-input>
+          </ion-item>
 
-      </ion-item>
-    </ion-list>
+          <!-- <ion-item lines="none">
+            <ion-input
+              label="Código Postal"
+              label-placement="stacked"
+              type="number"
+              placeholder="Ej. 98000"
+              [(ngModel)]="cpFiltro">
+            </ion-input>
+          </ion-item> -->
 
-    <!-- Infinite scroll -->
-    <ion-infinite-scroll
-      *ngIf="!telefono && (page * pageSize) < total"
-      threshold="100px"
-      (ionInfinite)="loadMore($event)">
-      <ion-infinite-scroll-content
-        loadingSpinner="bubbles"
-        loadingText="Cargando más clientes...">
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
+          <ion-grid class="clientes-filtros-actions">
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" (click)="aplicarFiltrosAvanzados()">
+                  Buscar
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button
+                  expand="block"
+                  fill="clear"
+                  color="medium"
+                  (click)="limpiarFiltrosAvanzados()">
+                  Limpiar
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
 
-  </ng-container>
+      <!-- ================== Mensajes / lista ================== -->
 
-  <ng-template #skeletons>
-    <ion-list>
-      <ion-item *ngFor="let s of [1,2,3,4,5]">
-        <ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text>
-      </ion-item>
-    </ion-list>
-  </ng-template>
+      <!-- Mensaje cuando no hay teléfono y no hay clientes -->
+      <!-- <ion-item
+        lines="none" class="clientes-empty-tip"
+        *ngIf="!telefono && !clientes.length && !loading && !searching">
+        <ion-label color="medium" class="clientes-empty-tip">
+          No se encuentran resultados relacionados con los filtros aplicados.
+        </ion-label>
+      </ion-item> -->
 
-  <ng-template #noData>
-    <ion-item lines="none">
-      <ion-label color="medium">
-        Sin clientes para mostrar en esta vista.
-      </ion-label>
-    </ion-item>
-  </ng-template>
+      <ng-container *ngIf="!loading && !searching; else skeletons">
+        <ion-list *ngIf="clientes?.length; else noData" class="clientes-list">
+          <ion-item
+            *ngFor="let c of clientes"
+            class="cliente-item"
+            detail="false">
 
+            <ion-label>
+              <h2 class="cliente-nombre">
+                {{ c.attributes?.nombre || c.nombre }}
+                {{ c.attributes?.apellidos || c.apellidos }}
+              </h2>
+
+              <p class="cliente-telefono">
+                Tel: {{ c.attributes?.telefono || c.telefono }}
+              </p>
+
+              <p class="cliente-estado">
+                Estado:
+                <strong>
+                  {{
+                    (c.attributes?.estado ?? c.estado)
+                      ? 'Activo'
+                      : 'Inactivo'
+                  }}
+                </strong>
+              </p>
+
+              <!-- <small class="cliente-id">
+                ID: {{ c.id }} ·
+                docId: {{ c.documentId || c.attributes?.documentId || '—' }}
+              </small> -->
+            </ion-label>
+
+            <ion-buttons slot="end" class="cliente-actions">
+              <ion-button
+                *ngIf="segmentValue === 'activos'"
+                color="primary"
+                size="small"
+                [routerLink]="['/callcenter/alta-rapida']"
+                [state]="{ telefono: (c.attributes?.telefono || c.telefono) }">
+                Agregar servicio
+              </ion-button>
+
+              <ion-button
+                *ngIf="segmentValue === 'activos'"
+                color="medium"
+                size="small"
+                (click)="onEdit(c)">
+                Editar
+              </ion-button>
+
+              <ion-button
+                *ngIf="segmentValue === 'activos'"
+                color="warning"
+                size="small"
+                (click)="onDelete(c)">
+                Desactivar
+              </ion-button>
+
+              <ion-button
+                *ngIf="segmentValue === 'inactivos'"
+                color="success"
+                size="small"
+                (click)="onReactivate(c)">
+                Reactivar
+              </ion-button>
+            </ion-buttons>
+
+          </ion-item>
+        </ion-list>
+
+        <!-- Infinite scroll -->
+        <ion-infinite-scroll
+          *ngIf="!telefono && (page * pageSize) < total"
+          threshold="100px"
+          (ionInfinite)="loadMore($event)">
+          <ion-infinite-scroll-content
+            loadingSpinner="bubbles"
+            loadingText="Cargando más clientes...">
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+      </ng-container>
+
+      <ng-template #skeletons>
+        <ion-list class="clientes-skeleton-list">
+          <ion-item *ngFor="let s of [1,2,3,4,5]" class="clientes-skeleton-item">
+            <ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text>
+          </ion-item>
+        </ion-list>
+      </ng-template>
+
+      <ng-template #noData>
+        <ion-item lines="none" class="clientes-empty-item">
+          <ion-label class="clientes-empty-tip">
+            No se encuentran resultados relacionados con los filtros aplicados.
+          </ion-label>
+        </ion-item>
+      </ng-template>
+
+    </div>
+  </div>
 </ion-content>

@@ -433,6 +433,30 @@ export class DashboardPage implements OnInit {
     }
   }
 
+    async clearFilters() {
+    // Búsqueda
+    this.searchTerm = '';
+
+    // Filtros select
+    this.filtroEstado = 'todos';
+    this.selectedRutaId = null;
+    this.selectedTipoServicio = null;
+
+    // Filtros de fecha (solo tienen efecto en vista "todos")
+    this.dateFilterMode = 'todos';
+    this.selectedFecha = null;
+
+    // Paginación
+    this.page = 1;
+
+    // Recargar según la vista actual
+    if (this.vista === 'hoy') {
+      await this.loadServiciosHoy();
+    } else {
+      await this.loadServiciosTodos();
+    }
+  }
+
   async nextPage() {
     if (this.page >= this.pageCount) return;
     this.page++;
@@ -498,6 +522,16 @@ export class DashboardPage implements OnInit {
     if (!servicio?.fecha_programado) return 'Sin hora';
     const fecha = new Date(servicio.fecha_programado);
     return fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  getFechaProgramado(servicio: any): string {
+    if (!servicio?.fecha_programado) return 'Sin fecha';
+    const fecha = new Date(servicio.fecha_programado);
+    return fecha.toLocaleDateString('es-MX', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   }
 
   // Nombre de la ruta

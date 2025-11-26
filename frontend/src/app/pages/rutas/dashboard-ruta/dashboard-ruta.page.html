@@ -1,12 +1,10 @@
-<!-- src/app/pages/rutas/dashboard-ruta/dashboard-ruta.page.html -->
-
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Rutas</ion-title>
-
+<ion-header [translucent]="true" class="rutas-header">
+  <ion-toolbar class="rutas-toolbar-main">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
+
+    <ion-title>Rutas</ion-title>
 
     <ion-buttons slot="end">
       <ion-button (click)="openCreateModal()">
@@ -17,174 +15,201 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content [fullscreen]="true" class="rutas-background">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Segmento Activas / Desactivadas -->
-  <ion-segment [(ngModel)]="segment" (ionChange)="onSegmentChange($event)" class="ion-padding-horizontal">
-    <ion-segment-button value="activas">
-      <ion-label>Activas</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="inactivas">
-      <ion-label>Desactivadas</ion-label>
-    </ion-segment-button>
-  </ion-segment>
+  <div class="rutas-wrapper">
+    <div class="rutas-card">
 
-  <!-- Filtros -->
-  <ion-card class="ion-margin-vertical">
-    <ion-card-header>
-      <ion-card-title>Filtros</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item>
-        <ion-input
-          label="Nombre de ruta"
-          label-placement="stacked"
-          placeholder="Ej. Ruta Centro, R37..."
-          [(ngModel)]="searchTerm">
-        </ion-input>
-      </ion-item>
+      <!-- Segmento Activas / Desactivadas -->
+      <ion-toolbar class="rutas-toolbar-segment">
+        <ion-segment
+          class="rutas-segment"
+          [(ngModel)]="segment"
+          (ionChange)="onSegmentChange($event)">
+          <ion-segment-button value="activas">
+            <ion-label>Activas</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="inactivas">
+            <ion-label>Desactivadas</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-toolbar>
 
-      <ion-grid>
-        <ion-row>
-          <ion-col size="6">
-            <ion-button expand="block" (click)="aplicarFiltros()">
-              Buscar
-            </ion-button>
-          </ion-col>
-          <ion-col size="6">
-            <ion-button expand="block" fill="clear" color="medium" (click)="limpiarFiltros()">
-              Limpiar
-            </ion-button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-card-content>
-  </ion-card>
+      <!-- Filtros -->
+      <ion-card class="rutas-filtros-card">
+        <ion-card-header>
+          <ion-card-title>Filtros</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item lines="none" class="filtro-item">
+            <ion-input
+              label="Nombre de ruta"
+              label-placement="stacked"
+              placeholder="Ej. Ruta Centro, R37..."
+              [(ngModel)]="searchTerm">
+            </ion-input>
+          </ion-item>
 
-  <!-- Loading -->
-  <ion-spinner *ngIf="loading" name="crescent" class="center-spinner"></ion-spinner>
+          <ion-grid class="rutas-filtros-actions">
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" (click)="aplicarFiltros()">
+                  Buscar
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button
+                  expand="block"
+                  fill="clear"
+                  color="medium"
+                  (click)="limpiarFiltros()">
+                  Limpiar
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
 
-  <!-- ========================= -->
-  <!-- LISTA DE RUTAS ACTIVAS   -->
-  <!-- ========================= -->
-  <ng-container *ngIf="segment === 'activas'">
-    <ion-list *ngIf="rutasActivas.length; else noActivas">
-      <ion-list-header>
-        <ion-label>Rutas activas</ion-label>
-      </ion-list-header>
-
-      <ion-item *ngFor="let ruta of rutasActivas">
-        <ion-label>
-          <h2>{{ ruta.nombre }}</h2>
-
-          <p *ngIf="ruta.personals?.length">
-            Operador:
-            {{ ruta.personals?.[0]?.nombre }} {{ ruta.personals?.[0]?.apellidos }}
-          </p>
-
-          <p>
-            Servicios asignados: {{ ruta.servicios?.length || 0 }}
-          </p>
-        </ion-label>
-
-        <ion-badge color="success" slot="end">Activa</ion-badge>
-
-        <ion-buttons slot="end">
-          <ion-button fill="clear" (click)="openEditModal(ruta)">
-            <ion-icon name="create-outline"></ion-icon>
-          </ion-button>
-
-          <ion-button fill="clear" color="danger" (click)="confirmSoftDelete(ruta)">
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-item>
-    </ion-list>
-
-    <ng-template #noActivas>
-      <div class="empty-state">
-        <ion-icon name="map-outline"></ion-icon>
-        <p>No hay rutas activas.</p>
+      <!-- Loading -->
+      <div *ngIf="loading" class="rutas-loading">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando rutas...</p>
       </div>
-    </ng-template>
-  </ng-container>
 
-  <!-- ============================= -->
-  <!-- LISTA DE RUTAS DESACTIVADAS  -->
-  <!-- ============================= -->
-  <ng-container *ngIf="segment === 'inactivas'">
-    <ion-list *ngIf="rutasInactivas.length; else noInactivas">
-      <ion-list-header>
-        <ion-label>Rutas desactivadas</ion-label>
-      </ion-list-header>
+      <!-- ========================= -->
+      <!-- LISTA DE RUTAS ACTIVAS   -->
+      <!-- ========================= -->
+      <ng-container *ngIf="segment === 'activas' && !loading">
+        <ion-list *ngIf="rutasActivas.length; else noActivas" class="rutas-list">
+          <ion-list-header>
+            <ion-label>Rutas activas</ion-label>
+          </ion-list-header>
 
-      <ion-item *ngFor="let ruta of rutasInactivas">
-        <ion-label>
-          <h2>{{ ruta.nombre }}</h2>
+          <ion-item *ngFor="let ruta of rutasActivas" class="ruta-item">
+            <ion-label>
+              <h2 class="ruta-nombre">{{ ruta.nombre }}</h2>
 
-          <p *ngIf="ruta.personals?.length">
-            Último operador:
-            {{ ruta.personals?.[0]?.nombre }} {{ ruta.personals?.[0]?.apellidos }}
-          </p>
+              <p class="ruta-detalle" *ngIf="ruta.personals?.length">
+                <strong>Operador:</strong>
+                {{ ruta.personals?.[0]?.nombre }} {{ ruta.personals?.[0]?.apellidos }}
+              </p>
 
-          <p>Servicios asignados (histórico): {{ ruta.servicios?.length || 0 }}</p>
-        </ion-label>
+              <p class="ruta-detalle">
+                <strong>Servicios asignados:</strong>
+                {{ ruta.servicios?.length || 0 }}
+              </p>
+            </ion-label>
 
-        <ion-badge color="medium" slot="end">Inactiva</ion-badge>
+            <ion-badge color="success" slot="end" class="ruta-badge">
+              Activa
+            </ion-badge>
 
-        <ion-buttons slot="end">
-          <ion-button fill="clear" (click)="reactivateRuta(ruta)">
-            <ion-icon name="refresh-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-item>
-    </ion-list>
+            <ion-buttons slot="end" class="ruta-actions">
+              <ion-button fill="clear" (click)="openEditModal(ruta)">
+                <ion-icon name="create-outline"></ion-icon>
+              </ion-button>
 
-    <ng-template #noInactivas>
-      <div class="empty-state">
+              <ion-button fill="clear" color="danger" (click)="confirmSoftDelete(ruta)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        </ion-list>
+
+        <ng-template #noActivas>
+          <div class="rutas-empty-state">
+            <ion-icon name="map-outline"></ion-icon>
+            <p>No hay rutas activas.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- ============================= -->
+      <!-- LISTA DE RUTAS DESACTIVADAS  -->
+      <!-- ============================= -->
+      <ng-container *ngIf="segment === 'inactivas' && !loading">
+        <ion-list *ngIf="rutasInactivas.length; else noInactivas" class="rutas-list">
+          <ion-list-header>
+            <ion-label>Rutas desactivadas</ion-label>
+          </ion-list-header>
+
+          <ion-item *ngFor="let ruta of rutasInactivas" class="ruta-item">
+            <ion-label>
+              <h2 class="ruta-nombre">{{ ruta.nombre }}</h2>
+
+              <p class="ruta-detalle" *ngIf="ruta.personals?.length">
+                <strong>Último operador:</strong>
+                {{ ruta.personals?.[0]?.nombre }} {{ ruta.personals?.[0]?.apellidos }}
+              </p>
+
+              <p class="ruta-detalle">
+                <strong>Servicios asignados (histórico):</strong>
+                {{ ruta.servicios?.length || 0 }}
+              </p>
+            </ion-label>
+
+            <ion-badge color="medium" slot="end" class="ruta-badge ruta-badge-inactiva">
+              Inactiva
+            </ion-badge>
+
+            <ion-buttons slot="end" class="ruta-actions">
+              <ion-button fill="clear" (click)="reactivateRuta(ruta)">
+                <ion-icon name="refresh-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        </ion-list>
+
+        <ng-template #noInactivas>
+          <div class="rutas-empty-state">
+            <ion-icon name="map-outline"></ion-icon>
+            <p>No hay rutas desactivadas.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- Estado vacío general -->
+      <div
+        *ngIf="!loading && !rutasActivas.length && !rutasInactivas.length"
+        class="rutas-empty-state rutas-empty-global">
         <ion-icon name="map-outline"></ion-icon>
-        <p>No hay rutas desactivadas.</p>
+        <p>No hay rutas registradas.</p>
+
+        <ion-button fill="clear" (click)="openCreateModal()">
+          Crear la primera ruta
+        </ion-button>
       </div>
-    </ng-template>
-  </ng-container>
 
-  <!-- Estado vacío general -->
-  <div
-    *ngIf="!loading && !rutasActivas.length && !rutasInactivas.length"
-    class="empty-state">
-    <ion-icon name="map-outline"></ion-icon>
-    <p>No hay rutas registradas.</p>
+      <!-- Infinite scroll -->
+      <ion-infinite-scroll
+        threshold="100px"
+        (ionInfinite)="loadMore($event)"
+        *ngIf="
+          !loading &&
+          (segment === 'activas'
+            ? (rutasActivas.length < totalActivas)
+            : (rutasInactivas.length < totalInactivas))
+        ">
+        <ion-infinite-scroll-content
+          loadingSpinner="bubbles"
+          loadingText="Cargando más rutas...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
 
-    <ion-button fill="clear" (click)="openCreateModal()">
-      Crear la primera ruta
-    </ion-button>
+    </div>
   </div>
-
-  <!-- Infinite scroll -->
-  <ion-infinite-scroll
-    threshold="100px"
-    (ionInfinite)="loadMore($event)"
-    *ngIf="
-      segment === 'activas'
-        ? (rutasActivas.length < totalActivas)
-        : (rutasInactivas.length < totalInactivas)
-    ">
-    <ion-infinite-scroll-content
-      loadingSpinner="bubbles"
-      loadingText="Cargando más rutas...">
-    </ion-infinite-scroll-content>
-  </ion-infinite-scroll>
 
   <!-- ======================= -->
   <!-- MODAL CREAR / EDITAR   -->
   <!-- ======================= -->
-  <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()">
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()" class="rutas-modal">
     <ng-template>
-      <ion-header>
+      <ion-header class="rutas-modal-header">
         <ion-toolbar>
           <ion-title>
             {{ modalMode === 'create' ? 'Nueva ruta' : 'Editar ruta' }}
@@ -197,10 +222,10 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
+      <ion-content class="rutas-modal-content">
         <form [formGroup]="rutaForm" (ngSubmit)="saveRuta()">
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Nombre de la ruta</ion-label>
             <ion-input
               formControlName="nombre"
@@ -208,11 +233,14 @@
             </ion-input>
           </ion-item>
 
-          <ion-note color="danger" *ngIf="rutaForm.get('nombre')?.touched && rutaForm.get('nombre')?.invalid">
+          <ion-note
+            color="danger"
+            class="form-error"
+            *ngIf="rutaForm.get('nombre')?.touched && rutaForm.get('nombre')?.invalid">
             El nombre es obligatorio y debe tener mínimo 2 caracteres.
           </ion-note>
 
-          <ion-item *ngIf="modalMode === 'edit'">
+          <ion-item *ngIf="modalMode === 'edit'" lines="none" class="form-toggle-item">
             <ion-label>Ruta activa</ion-label>
             <ion-toggle formControlName="estado"></ion-toggle>
           </ion-item>
@@ -222,7 +250,7 @@
               Cancelar
             </ion-button>
 
-            <ion-button type="submit" [disabled]="rutaForm.invalid">
+            <ion-button type="submit" [disabled]="rutaForm.invalid" class="form-submit-btn">
               {{ modalMode === 'create' ? 'Crear' : 'Guardar cambios' }}
             </ion-button>
           </div>

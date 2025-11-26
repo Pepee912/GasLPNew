@@ -1,12 +1,10 @@
-<!-- src/app/pages/usuarios/dashboard-usuarios/dashboard-usuarios.page.html -->
-
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Usuarios</ion-title>
-
+<ion-header class="usuarios-header">
+  <ion-toolbar class="usuarios-toolbar-main">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
+
+    <ion-title>Usuarios</ion-title>
 
     <ion-buttons slot="end">
       <ion-button (click)="openCreateModal()">
@@ -17,164 +15,174 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="usuarios-background">
 
-  <!-- Loading -->
-  <ng-container *ngIf="loading; else contentTpl">
-    <div class="ion-text-center ion-padding">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>Cargando usuarios...</p>
+  <div class="usuarios-wrapper">
+    <div class="usuarios-card">
+
+      <!-- Loading -->
+      <ng-container *ngIf="loading; else contentTpl">
+        <div class="usuarios-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando usuarios...</p>
+        </div>
+      </ng-container>
+
+      <!-- Contenido principal -->
+      <ng-template #contentTpl>
+
+        <ng-container *ngIf="usuarios && usuarios.length > 0; else emptyTpl">
+
+          <!-- 🔎 Filtros de usuarios -->
+          <ion-card class="usuarios-filtros-card">
+            <ion-card-header>
+              <ion-card-title>Filtros</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content>
+              <ion-item lines="none" class="filtro-item">
+                <ion-input
+                  label="Buscar"
+                  label-placement="stacked"
+                  placeholder="Usuario, correo o nombre de operador"
+                  [(ngModel)]="searchText">
+                </ion-input>
+              </ion-item>
+
+              <ion-item lines="none" class="filtro-item">
+                <ion-label>Rol</ion-label>
+                <ion-select [(ngModel)]="roleFilter" interface="popover">
+                  <ion-select-option value="todos">Todos</ion-select-option>
+                  <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
+                    {{ rol.name }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item lines="none" class="filtro-item">
+                <ion-label>Estado</ion-label>
+                <ion-select [(ngModel)]="blockedFilter" interface="popover">
+                  <ion-select-option value="todos">Todos</ion-select-option>
+                  <ion-select-option value="activos">Activos</ion-select-option>
+                  <ion-select-option value="bloqueados">Bloqueados</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-grid class="usuarios-filtros-actions">
+                <ion-row>
+                  <ion-col size="6">
+                    <ion-button expand="block" (click)="aplicarFiltros()">
+                      Buscar
+                    </ion-button>
+                  </ion-col>
+                  <ion-col size="6">
+                    <ion-button
+                      expand="block"
+                      fill="clear"
+                      color="medium"
+                      (click)="limpiarFiltros()">
+                      Limpiar
+                    </ion-button>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Lista de usuarios -->
+          <ion-list class="usuarios-list">
+            <ion-item *ngFor="let usuario of usuariosPaginados" class="usuario-item">
+
+              <!-- Info principal del usuario -->
+              <ion-label>
+                <h2 class="usuario-username">
+                  {{ usuario.username }}
+                  <ion-badge *ngIf="usuario.blocked" color="danger" class="badge-bloqueado">
+                    Bloqueado
+                  </ion-badge>
+                </h2>
+
+                <p class="usuario-email">{{ usuario.email }}</p>
+
+                <p class="usuario-detail">
+                  <strong>Rol actual:</strong>
+                  {{ usuario.role?.name || 'Sin rol' }}
+                </p>
+
+                <p class="usuario-detail">
+                  <strong>Personal:</strong>
+                  <span *ngIf="usuario.personal; else sinPersonal">
+                    Asignado
+                    <span *ngIf="usuario.personal?.nombre">
+                      ({{ usuario.personal.nombre }} {{ usuario.personal.apellidos }})
+                    </span>
+                    <span *ngIf="usuario.personal?.ruta">
+                      · Ruta:
+                      {{ usuario.personal.ruta.nombre || usuario.personal.ruta.attributes?.nombre }}
+                    </span>
+                  </span>
+                  <ng-template #sinPersonal>
+                    No asignado
+                  </ng-template>
+                </p>
+              </ion-label>
+
+              <!-- Rol chip solo lectura -->
+              <ion-chip slot="end" outline="true" class="usuario-rol-chip">
+                {{ usuario.role?.name || 'Sin rol' }}
+              </ion-chip>
+
+              <!-- Botón editar -->
+              <ion-button
+                slot="end"
+                fill="clear"
+                class="usuario-btn-icon"
+                (click)="openEditModal(usuario)">
+                <ion-icon name="create-outline"></ion-icon>
+              </ion-button>
+
+              <!-- Botón bloquear / desbloquear -->
+              <ion-button
+                slot="end"
+                fill="outline"
+                [color]="usuario.blocked ? 'success' : 'danger'"
+                (click)="onToggleBloqueo(usuario)"
+                class="usuario-bloqueo-btn">
+                {{ usuario.blocked ? 'Desbloquear' : 'Bloquear' }}
+              </ion-button>
+            </ion-item>
+          </ion-list>
+
+          <!-- Infinite scroll -->
+          <ion-infinite-scroll
+            *ngIf="hasMore"
+            threshold="100px"
+            (ionInfinite)="loadMore($event)">
+            <ion-infinite-scroll-content
+              loadingSpinner="bubbles"
+              loadingText="Cargando más usuarios...">
+            </ion-infinite-scroll-content>
+          </ion-infinite-scroll>
+
+        </ng-container>
+
+        <!-- Sin usuarios -->
+        <ng-template #emptyTpl>
+          <div class="usuarios-empty">
+            <h2>No hay usuarios registrados</h2>
+            <p>Cuando se registren usuarios verás la lista aquí.</p>
+          </div>
+        </ng-template>
+
+      </ng-template>
+
     </div>
-  </ng-container>
-
-  <!-- Contenido principal -->
-  <ng-template #contentTpl>
-
-    <ng-container *ngIf="usuarios && usuarios.length > 0; else emptyTpl">
-
-      <!-- 🔎 Filtros de usuarios -->
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>Filtros</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-content>
-          <ion-item>
-            <ion-input
-              label="Buscar"
-              label-placement="stacked"
-              placeholder="Usuario, correo o nombre de operador"
-              [(ngModel)]="searchText">
-            </ion-input>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Rol</ion-label>
-            <ion-select [(ngModel)]="roleFilter">
-              <ion-select-option value="todos">Todos</ion-select-option>
-              <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
-                {{ rol.name }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Estado</ion-label>
-            <ion-select [(ngModel)]="blockedFilter">
-              <ion-select-option value="todos">Todos</ion-select-option>
-              <ion-select-option value="activos">Activos</ion-select-option>
-              <ion-select-option value="bloqueados">Bloqueados</ion-select-option>
-            </ion-select>
-          </ion-item>
-
-          <ion-grid>
-            <ion-row>
-              <ion-col size="6">
-                <ion-button expand="block" (click)="aplicarFiltros()">
-                  Buscar
-                </ion-button>
-              </ion-col>
-              <ion-col size="6">
-                <ion-button
-                  expand="block"
-                  fill="clear"
-                  color="medium"
-                  (click)="limpiarFiltros()">
-                  Limpiar
-                </ion-button>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Lista de usuarios (paginada en frontend) -->
-      <ion-list>
-        <ion-item *ngFor="let usuario of usuariosPaginados">
-          <!-- Info principal del usuario -->
-          <ion-label>
-            <h2>
-              {{ usuario.username }}
-              <ion-badge *ngIf="usuario.blocked" color="danger" class="badge-bloqueado">
-                Bloqueado
-              </ion-badge>
-            </h2>
-
-            <p>{{ usuario.email }}</p>
-
-            <p>
-              <strong>Rol actual:</strong>
-              {{ usuario.role?.name || 'Sin rol' }}
-            </p>
-
-            <p>
-              <strong>Personal:</strong>
-              <span *ngIf="usuario.personal; else sinPersonal">
-                Asignado
-                <span *ngIf="usuario.personal?.nombre">
-                  ({{ usuario.personal.nombre }} {{ usuario.personal.apellidos }})
-                </span>
-                <span *ngIf="usuario.personal?.ruta">
-                  - Ruta:
-                  {{ usuario.personal.ruta.nombre || usuario.personal.ruta.attributes?.nombre }}
-                </span>
-              </span>
-              <ng-template #sinPersonal>
-                No asignado
-              </ng-template>
-            </p>
-          </ion-label>
-
-          <!-- Rol mostrado como chip, SOLO lectura -->
-          <ion-chip slot="end" outline="true">
-            {{ usuario.role?.name || 'Sin rol' }}
-          </ion-chip>
-
-          <!-- Botón editar -->
-          <ion-button slot="end" fill="clear" (click)="openEditModal(usuario)">
-            <ion-icon name="create-outline"></ion-icon>
-          </ion-button>
-
-          <!-- Botón bloquear / desbloquear -->
-          <ion-button
-            slot="end"
-            fill="outline"
-            [color]="usuario.blocked ? 'success' : 'danger'"
-            (click)="onToggleBloqueo(usuario)"
-            class="ion-margin-start"
-          >
-            {{ usuario.blocked ? 'Desbloquear' : 'Bloquear' }}
-          </ion-button>
-        </ion-item>
-      </ion-list>
-
-      <!-- Infinite scroll -->
-      <ion-infinite-scroll
-        *ngIf="hasMore"
-        threshold="100px"
-        (ionInfinite)="loadMore($event)">
-        <ion-infinite-scroll-content
-          loadingSpinner="bubbles"
-          loadingText="Cargando más usuarios...">
-        </ion-infinite-scroll-content>
-      </ion-infinite-scroll>
-
-    </ng-container>
-
-    <!-- Sin usuarios -->
-    <ng-template #emptyTpl>
-      <div class="ion-text-center ion-padding">
-        <h2>No hay usuarios registrados</h2>
-        <p>Cuando se registren usuarios verás la lista aquí.</p>
-      </div>
-    </ng-template>
-
-  </ng-template>
+  </div>
 
   <!-- 🔹 MODAL CREAR USUARIO -->
-  <ion-modal [isOpen]="isCreateModalOpen" (didDismiss)="closeCreateModal()">
+  <ion-modal [isOpen]="isCreateModalOpen" (didDismiss)="closeCreateModal()" class="usuarios-modal">
     <ng-template>
-      <ion-header>
+      <ion-header class="usuarios-modal-header">
         <ion-toolbar>
           <ion-title>Nuevo usuario</ion-title>
           <ion-buttons slot="end">
@@ -183,29 +191,28 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
-        <ion-item>
+      <ion-content class="usuarios-modal-content">
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Usuario</ion-label>
           <ion-input [(ngModel)]="newUser.username" placeholder="Nombre de usuario"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Correo</ion-label>
           <ion-input [(ngModel)]="newUser.email" type="email" placeholder="correo@ejemplo.com"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Contraseña</ion-label>
-          <ion-input [(ngModel)]="newUser.password" type="password"></ion-input>
+          <ion-input [(ngModel)]="newUser.password" type="password" placeholder="contraseña"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Rol</ion-label>
           <ion-select
             [(ngModel)]="newUser.roleId"
             interface="popover"
-            (ionChange)="onRoleChangeCreate($event.detail.value)"
-          >
+            (ionChange)="onRoleChangeCreate($event.detail.value)">
             <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
               {{ rol.name }}
             </ion-select-option>
@@ -214,22 +221,22 @@
 
         <!-- Campos extra para Operador -->
         <ng-container *ngIf="isOperadorSelectedCreate">
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Nombre (Personal)</ion-label>
             <ion-input [(ngModel)]="newUser.personalNombre" placeholder="Nombre del operador"></ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Apellidos (Personal)</ion-label>
             <ion-input [(ngModel)]="newUser.personalApellidos" placeholder="Apellidos del operador"></ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Teléfono (Personal)</ion-label>
             <ion-input [(ngModel)]="newUser.personalTelefono" type="tel" placeholder="Teléfono del operador"></ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Ruta (opcional)</ion-label>
             <ion-select [(ngModel)]="newUser.personalRutaId" interface="popover">
               <ion-select-option [value]="null">Sin ruta asignada</ion-select-option>
@@ -240,8 +247,8 @@
           </ion-item>
         </ng-container>
 
-        <div class="ion-padding-top">
-          <ion-button expand="block" (click)="saveNewUser()">
+        <div class="modal-actions">
+          <ion-button expand="block" class="form-submit-btn" (click)="saveNewUser()">
             Guardar
           </ion-button>
         </div>
@@ -250,9 +257,9 @@
   </ion-modal>
 
   <!-- 🔹 MODAL EDITAR USUARIO -->
-  <ion-modal [isOpen]="isEditModalOpen" (didDismiss)="closeEditModal()">
+  <ion-modal [isOpen]="isEditModalOpen" (didDismiss)="closeEditModal()" class="usuarios-modal">
     <ng-template>
-      <ion-header>
+      <ion-header class="usuarios-modal-header">
         <ion-toolbar>
           <ion-title>Editar usuario</ion-title>
           <ion-buttons slot="end">
@@ -261,53 +268,52 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
-        <ion-item>
+      <ion-content class="usuarios-modal-content">
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Usuario</ion-label>
           <ion-input [(ngModel)]="editUser.username"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Correo</ion-label>
           <ion-input [(ngModel)]="editUser.email" type="email"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item lines="none" class="form-item">
           <ion-label position="stacked">Rol</ion-label>
           <ion-select
             [(ngModel)]="editUser.roleId"
             interface="popover"
-            (ionChange)="onRoleChangeEdit($event.detail.value)"
-          >
+            (ionChange)="onRoleChangeEdit($event.detail.value)">
             <ion-select-option *ngFor="let rol of roles" [value]="rol.id">
               {{ rol.name }}
             </ion-select-option>
           </ion-select>
         </ion-item>
 
-        <ion-item>
+        <ion-item lines="none" class="form-toggle-item">
           <ion-label>Bloqueado</ion-label>
           <ion-toggle [(ngModel)]="editUser.blocked"></ion-toggle>
         </ion-item>
 
         <!-- Campos extra para Operador en edición -->
         <ng-container *ngIf="isOperadorSelectedEdit">
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Nombre (Personal)</ion-label>
             <ion-input [(ngModel)]="editUser.personalNombre"></ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Apellidos (Personal)</ion-label>
             <ion-input [(ngModel)]="editUser.personalApellidos"></ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Teléfono (Personal)</ion-label>
             <ion-input [(ngModel)]="editUser.personalTelefono" type="tel"></ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" class="form-item">
             <ion-label position="stacked">Ruta (opcional)</ion-label>
             <ion-select [(ngModel)]="editUser.personalRutaId" interface="popover">
               <ion-select-option [value]="null">Sin ruta asignada</ion-select-option>
@@ -318,8 +324,8 @@
           </ion-item>
         </ng-container>
 
-        <div class="ion-padding-top">
-          <ion-button expand="block" (click)="saveEditUser()">
+        <div class="modal-actions">
+          <ion-button expand="block" class="form-submit-btn" (click)="saveEditUser()">
             Guardar cambios
           </ion-button>
         </div>
