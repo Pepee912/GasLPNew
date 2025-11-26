@@ -6,66 +6,76 @@
           <!-- Columna del formulario -->
           <ion-col size="12" size-md="6" class="panel-col">
             <div class="login-panel" role="form" aria-labelledby="loginTitle">
-              <h2 class="app-name">ENTREGA DE GAS</h2>
-              <h1 id="loginTitle" class="login-title">Inicio de sesión</h1>
-              <p class="login-subtitle">
-                Ingresa tus datos para entrar al sistema.
-              </p>
+              <div class="login-header">
+                <h2 class="app-name">ENTREGA DE GAS</h2>
+                <h1 id="loginTitle" class="login-title">Inicio de sesión</h1>
+                <p class="login-subtitle">
+                  Ingresa tus datos para entrar al sistema.
+                </p>
+              </div>
 
-              <ion-item class="login-item" lines="none">
-                <ion-label position="stacked">Usuario o correo</ion-label>
-                <ion-input
-                  [(ngModel)]="identifier"
-                  type="text"
-                  placeholder="ej. callcenter"
-                  inputmode="email"
-                  autocapitalize="off">
-                </ion-input>
-              </ion-item>
+              <div class="login-form">
+                <ion-item class="login-item" lines="none">
+                  <ion-label position="stacked">Usuario o correo</ion-label>
+                  <ion-input
+                    [(ngModel)]="identifier"
+                    type="text"
+                    placeholder="ej. callcenter"
+                    inputmode="email"
+                    autocapitalize="off">
+                  </ion-input>
+                </ion-item>
 
-              <ion-item class="login-item" lines="none">
-                <ion-label position="stacked">Contraseña</ion-label>
-                <ion-input
-                  [(ngModel)]="password"
-                  type="password"
-                  placeholder="********"
-                  autocomplete="current-password">
-                </ion-input>
-              </ion-item>
+                <ion-item class="login-item" lines="none">
+                  <ion-label position="stacked">Contraseña</ion-label>
+                  <ion-input
+                    [(ngModel)]="password"
+                    type="password"
+                    placeholder="********"
+                    autocomplete="current-password">
+                  </ion-input>
+                </ion-item>
 
-              <ion-button (click)="login()" expand="block" class="btn-primary" shape="round">
-                Iniciar sesión
-              </ion-button>
+                <ion-button
+                  (click)="login()"
+                  expand="block"
+                  class="btn-primary"
+                  shape="round">
+                  Iniciar sesión
+                </ion-button>
 
-              <ion-button
-                expand="block"
-                class="btn-google"
-                fill="outline"
-                shape="round"
-                href="http://localhost:1337/api/connect/google">
-                <ion-icon slot="start" name="logo-google"></ion-icon>
-                Continuar con Google
-              </ion-button>
+                <ion-button
+                  expand="block"
+                  class="btn-google"
+                  fill="outline"
+                  shape="round"
+                  href="http://localhost:1337/api/connect/google">
+                  <ion-icon slot="start" name="logo-google"></ion-icon>
+                  Continuar con Google
+                </ion-button>
 
-              <button type="button" class="forgot-link">
-                ¿Olvidaste tu contraseña?
-              </button>
+                <button type="button" class="forgot-link">
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
+              <!-- <div class="login-footer-note">
+                <span>Sistema interno para administración de entregas de gas.</span>
+              </div> -->
             </div>
           </ion-col>
 
           <!-- Columna de ilustración -->
           <ion-col size="12" size-md="6" class="illustration-col">
             <div class="login-illustration" aria-hidden="true">
-
-              <img src="assets/logo.jpg" alt="Logo Gas"
-                  class="login-logo"/>
-
-              <p class="illustration-text">
-                Entrega Segura, Rápida y Confiable.
-              </p>
+              <div class="login-illustration-inner">
+                <img src="assets/logo.jpg" alt="Logo Gas" class="login-logo" />
+                <p class="illustration-text">
+                  Entrega segura, rápida y confiable.
+                </p>
+              </div>
             </div>
           </ion-col>
-
         </ion-row>
       </ion-grid>
     </div>

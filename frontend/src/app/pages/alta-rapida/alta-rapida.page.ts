@@ -23,7 +23,7 @@ type DomicilioLite = AnyEntity;
 export class AltaRapidaPage implements OnInit {
   submitting = false;
 
-  // 👇 controla si se muestra el card de Servicio
+  // controla si se muestra el card de Servicio
   showServicio = false;
 
   // 🔹 Fecha mínima permitida para programar servicios (ahora)
@@ -226,7 +226,7 @@ export class AltaRapidaPage implements OnInit {
       this.clienteExistente = null;
       this.domiciliosExistentes = [];
       this.usarDomicilioExistente = false;
-      this.showServicio = false; // 🔹 nuevo cliente => ocultamos servicio
+      this.showServicio = false; 
       return;
     }
 
@@ -408,7 +408,7 @@ export class AltaRapidaPage implements OnInit {
         domicilioRef = this.docIdOf(domObj);
       } else {
         // No hay domicilio existente ni datos capturados y NO se va a crear servicio
-        // → no se crea domicilio en blanco
+        // no se crea domicilio en blanco
         domicilioRef = null;
       }
 
@@ -423,7 +423,6 @@ export class AltaRapidaPage implements OnInit {
 
         const rutaRef = srvValues.ruta || null;
 
-        // 👇 OBLIGAMOS a tener estado inicial, si no → NO se crea servicio
         const estadoInicial = await this.getEstadoInicial(rutaRef);
         if (!estadoInicial) {
           const tipoEsperado = rutaRef ? 'Asignado' : 'Programado';

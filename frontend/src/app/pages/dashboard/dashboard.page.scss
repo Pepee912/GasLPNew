@@ -1,10 +1,131 @@
-.dashboard-background {
+/* ===================== MENÚ LATERAL ===================== */
+
+ion-menu[menuId="main-menu"] {
+  --background: #fff7f2;
+  --ion-text-color: #213549;
+}
+
+ion-menu[menuId="main-menu"] ion-header ion-toolbar {
+  --background: #fff7f2;
+  --color: #213549;
+  --border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: 0 1px 0 rgba(148, 163, 184, 0.2);
+}
+
+ion-menu[menuId="main-menu"] ion-title {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+ion-menu[menuId="main-menu"] ion-content {
   --background: #fff7f2;
 }
 
-.dashboard-header ion-toolbar {
+ion-menu[menuId="main-menu"] ion-list {
+  background: transparent;
+}
+
+ion-menu[menuId="main-menu"] ion-list-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+ion-menu[menuId="main-menu"] ion-item {
   --background: transparent;
+  --color: #213549;
+  --detail-icon-color: #ff7b3a;
   --border-color: transparent;
+  --min-height: 44px;
+}
+
+ion-menu[menuId="main-menu"] ion-item ion-icon {
+  color: #ff7b3a;
+  font-size: 1.2rem;
+}
+
+ion-menu[menuId="main-menu"] ion-item:hover {
+  --background: rgba(255, 123, 58, 0.06);
+}
+
+ion-menu[menuId="main-menu"] ion-item[lines="full"] {
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+  margin-top: 4px;
+}
+
+/* ===================== HEADER DASHBOARD ===================== */
+
+.dashboard-header {
+  backdrop-filter: blur(10px);
+}
+
+.dashboard-header ion-toolbar:first-of-type {
+  --background: #fff7f2;
+  --color: #213549;
+  --border-color: transparent;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.dashboard-header ion-toolbar:nth-of-type(2) {
+  --background: #fff5ed;
+  --border-color: rgba(255, 180, 135, 0.6);
+  border-top: 1px solid rgba(255, 180, 135, 0.5);
+  border-bottom: 1px solid rgba(255, 180, 135, 0.5);
+}
+
+.dashboard-header ion-title {
+  font-weight: 600;
+}
+
+/* Botón salir en header */
+.dashboard-header ion-buttons[slot="end"] ion-button {
+  --color: #ff7b3a;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Menú hamburguesa */
+.dashboard-header ion-menu-button {
+  --color: #213549;
+}
+
+/* ===================== SEGMENTO HOY / TODOS ===================== */
+
+.dashboard-header ion-segment {
+  --background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  margin: 8px 12px 10px;
+  padding: 2px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-header ion-segment-button {
+  --indicator-color: #ff7b3a;
+  --indicator-box-shadow: 0 6px 15px rgba(255, 123, 58, 0.45);
+  --color: #6b7280;
+  --color-checked: #ffffff;
+
+  text-transform: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.dashboard-header ion-segment-button::part(indicator) {
+  border-radius: 999px;
+}
+
+.dashboard-header ion-segment-button.ion-activated {
+  color: #ffffff;
+}
+
+/* ===================== FONDO Y CONTENEDOR PRINCIPAL ===================== */
+
+.dashboard-background {
+  --background: linear-gradient(145deg, #fff7f2 0%, #ffe9db 40%, #ffe0c4 100%);
   color: #213549;
 }
 
@@ -13,25 +134,27 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 20px 12px 24px;
 }
 
 .dashboard-card {
   width: 100%;
-  max-width: 960px;
+  max-width: 1080px;
   background: #ffffff;
   border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
-  padding: 28px 28px 24px;
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.18);
+  padding: 20px 20px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  border: 1px solid rgba(255, 123, 58, 0.16);
 }
 
+/* Top: título + usuario */
 .dashboard-top {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 16px;
 }
 
@@ -39,302 +162,70 @@
   font-size: 1.6rem;
   font-weight: 700;
   color: #213549;
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .dashboard-subtitle {
-  margin: 0;
-  color: #6b7280;
+  margin: 4px 0 0;
   font-size: 0.9rem;
+  color: #6b7280;
 }
 
-/* Usuario */
+/* Resumen usuario */
 .user-summary {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff7f2;
+  box-shadow: 0 10px 24px rgba(148, 81, 35, 0.18);
 }
 
-.user-icon {
-  font-size: 2.4rem;
+.user-summary .user-icon {
+  font-size: 1.8rem;
   color: #ff7b3a;
 }
 
 .user-name {
   margin: 0;
   font-weight: 600;
+  font-size: 0.95rem;
   color: #213549;
 }
 
 .user-role {
   margin: 0;
   font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: #9ca3af;
 }
 
-/* Contenedor de filtros */
-.filtros-container ion-item {
-  --background: transparent;
-  padding-left: 0;
-}
-
-/* Lista de servicios */
-.servicios-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Tarjeta de servicio */
-.servicio-card {
-  border-radius: 18px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f3e5dd;
-}
-
-/* Header de la tarjeta */
-.servicio-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.servicio-header-main {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.servicio-icon {
-  font-size: 1.8rem;
-  color: #e35421;
-}
-
-.servicio-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.servicio-spinner {
-  width: 20px;
-  height: 20px;
-}
-
-/* Contenido de la tarjeta */
-.servicio-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.servicio-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.servicio-row ion-icon {
-  font-size: 1.3rem;
-  margin-top: 2px;
-  color: #ff7b3a;
-}
-
-.servicio-label {
-  margin: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9ca3af;
-}
-
-.servicio-value {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #374151;
-}
-
-/* Dos columnas dentro de la tarjeta */
-.two-cols {
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.servicio-col {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-/* Footer: select de estado */
-.servicio-footer {
-  margin-top: 8px;
-  border-top: 1px solid #f3e5dd;
-  padding-top: 8px;
-}
-
-.servicio-estado-item {
-  --background: transparent;
-  --padding-start: 0;
-  --inner-padding-end: 0;
-}
-
-@media (max-width: 768px) {
-  .dashboard-card {
-    padding: 22px 16px 20px;
-  }
-
-  .dashboard-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-/* ================== Fondo general ================== */
-
-.dashboard-background {
-  --background: #fff3e8; /* fondo cálido */
-  color: #213549;
-}
-
-/* Header superior */
-.dashboard-header {
-  ion-toolbar {
-    --background: #fff3e8;
-    --border-color: transparent;
-    --color: #213549;
-  }
-
-  ion-title {
-    font-weight: 600;
-    letter-spacing: 0.03em;
-  }
-
-  ion-segment {
-    --background: #ffe4d0;
-    border-radius: 999px;
-    margin: 0 12px 8px;
-  }
-
-  ion-segment-button {
-    --indicator-color: #ff7b3a;
-    --color-checked: #ffffff;
-    --color: #213549;
-    text-transform: none;
-    font-size: 0.9rem;
-  }
-}
-
-/* ================== Layout tarjeta principal ================== */
-
-.dashboard-wrapper {
-  min-height: 100%;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 24px 16px;
-}
-
-.dashboard-card {
-  width: 100%;
-  max-width: 960px;
-  background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
-  padding: 24px 24px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* ================== Top: título + usuario ================== */
-
-.dashboard-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.dashboard-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #213549;
-  margin: 0 0 6px;
-}
-
-.dashboard-subtitle {
-  margin: 0;
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-/* Usuario */
-.user-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: #fff3e8;
-}
-
-.user-icon {
-  font-size: 2.2rem;
-  color: #ff7b3a;
-}
-
-.user-name {
-  margin: 0;
-  font-weight: 600;
-  color: #213549;
-}
-
-.user-role {
-  margin: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9ca3af;
-}
-
-/* ================== Filtros ================== */
-
+/* Filtros contenedor */
 .filtros-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 4px;
+  padding-top: 8px;
+  padding-bottom: 2px;
+  border-radius: 18px;
+  background: #fffaf6;
+  border: 1px dashed rgba(255, 180, 135, 0.6);
 }
 
-/* Searchbar */
-.filtros-container ion-searchbar {
-  --background: #ffffff;
-  --color: #213549;
-  --placeholder-color: #9ca3af;
-  --icon-color: #ff7b3a;
-  border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
-}
-
-/* Fila de filtros (ion-item) */
 .filtros-row {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
 }
 
 .filtro-item {
-  flex: 1 1 0;
   --background: #ffffff;
-  --color: #213549;
-  --padding-start: 8px;
-  --inner-padding-end: 0;
+  --border-radius: 14px;
   --min-height: 44px;
-  border-radius: 14px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.03);
-  margin: 0;
+  --inner-padding-start: 10px;
+  --inner-padding-end: 8px;
+  --border-color: rgba(229, 231, 235, 0.9);
+
+  flex: 1 1 220px;
 }
 
 .filtro-item ion-label {
@@ -342,42 +233,40 @@
   color: #6b7280;
 }
 
-.filtro-item ion-select {
-  --placeholder-color: #9ca3af;
-  --color: #213549;
-  font-size: 0.9rem;
-}
-
-/* Fecha específica */
-ion-datetime {
+ion-searchbar {
   --background: #ffffff;
-  --wheel-highlight-background: #ffe4d0;
-  --wheel-fade-background-rgb: 255, 228, 208;
-  border-radius: 16px;
+  --border-radius: 999px;
+  --box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --placeholder-color: #9ca3af;
+  --color: #111827;
+  font-size: 0.92rem;
 }
 
-/* ================== Lista de servicios ================== */
+/* ===================== LISTA DE SERVICIOS ===================== */
 
 .servicios-list {
-  display: flex;
-  flex-direction: column;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
-/* Tarjeta de servicio */
+/* Tarjeta individual */
 .servicio-card {
+  --background: #ffffff;
   border-radius: 18px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f3e5dd;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(229, 231, 235, 0.9);
   overflow: hidden;
 }
 
-/* Header de la tarjeta */
+/* Encabezado */
 .servicio-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-bottom: 6px;
+  justify-content: space-between;
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid rgba(243, 244, 246, 1);
 }
 
 .servicio-header-main {
@@ -387,157 +276,141 @@ ion-datetime {
 }
 
 .servicio-icon {
-  font-size: 1.8rem;
-  color: #e35421;
+  font-size: 1.6rem;
+  color: #ff7b3a;
 }
 
-ion-card-title {
+.servicio-header ion-card-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #213549;
+  color: #111827;
 }
 
-ion-card-subtitle {
+.servicio-header ion-card-subtitle {
   font-size: 0.8rem;
   color: #6b7280;
 }
 
-/* Badge de estado */
 .servicio-header-right {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
-ion-badge {
+.servicio-header-right ion-badge {
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  border-radius: 999px;
+  padding: 4px 10px;
 }
 
-/* Spinner pequeño */
-.servicio-spinner {
-  width: 20px;
-  height: 20px;
-}
-
-/* Contenido de la tarjeta */
+/* Contenido */
 .servicio-content {
+  padding: 10px 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .servicio-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
   margin-top: 4px;
 }
 
 .servicio-row ion-icon {
-  font-size: 1.3rem;
   margin-top: 2px;
+  font-size: 1.1rem;
   color: #ff7b3a;
 }
 
 .servicio-label {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #9ca3af;
 }
 
 .servicio-value {
   margin: 0;
   font-size: 0.9rem;
-  color: #374151;
+  color: #111827;
 }
 
 /* Dos columnas dentro de la tarjeta */
-.two-cols {
-  justify-content: space-between;
-  gap: 16px;
+.servicio-row.two-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .servicio-col {
-  flex: 1;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
 }
 
 /* Footer: select de estado */
 .servicio-footer {
-  margin-top: 8px;
-  border-top: 1px solid #f3e5dd;
+  margin-top: 6px;
+  border-top: 1px solid rgba(243, 244, 246, 1);
   padding-top: 6px;
 }
 
 .servicio-estado-item {
   --background: transparent;
-  --padding-start: 0;
+  --border-color: transparent;
+  --inner-padding-start: 0;
   --inner-padding-end: 0;
   --min-height: 40px;
 }
 
 .servicio-estado-item ion-label {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   color: #6b7280;
 }
 
 .servicio-estado-item ion-select {
-  --placeholder-color: #9ca3af;
-  --color: #213549;
+  min-width: 150px;
 }
 
-/* ================== Paginación ================== */
+/* ===================== PAGINACIÓN ===================== */
 
 .paginacion-container {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px dashed #f3e5dd;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 8px;
-  padding-top: 8px;
+  border-top: 1px solid rgba(229, 231, 235, 1);
+  padding-top: 10px;
 }
 
 .paginacion-info {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #6b7280;
-}
-
-.paginacion-botones {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
 }
 
 .paginacion-botones ion-button {
   --border-radius: 999px;
+  --color: #ff7b3a;
+  --border-color: rgba(255, 123, 58, 0.5);
+  text-transform: none;
+  font-weight: 500;
 }
 
-/* ================== Mensajes vacíos / error ================== */
+/* ===================== RESPONSIVE ===================== */
 
-ion-text[color='danger'] p {
-  font-size: 0.9rem;
-}
-
-ion-item[lines='none'] ion-label.ion-text-center h2 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-  color: #213549;
-}
-
-/* ================== Responsivo ================== */
-
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .dashboard-card {
-    padding: 18px 14px 16px;
+    max-width: 960px;
+    padding: 18px 14px;
   }
 
   .dashboard-top {
@@ -545,60 +418,101 @@ ion-item[lines='none'] ion-label.ion-text-center h2 {
     align-items: flex-start;
   }
 
-  .two-cols {
-    flex-direction: column;
+  .user-summary {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    padding: 16px 8px 20px;
+  }
+
+  .dashboard-card {
+    border-radius: 18px;
+  }
+
+  .servicios-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .servicio-row.two-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-card {
+    padding: 14px 10px;
+  }
+
+  .dashboard-title {
+    font-size: 1.4rem;
   }
 
   .filtros-row {
     flex-direction: column;
   }
-
-  .user-summary {
-    align-self: stretch;
-    justify-content: flex-start;
-  }
 }
 
-  .two-cols {
-    flex-direction: column;
-  }
+/* ========== 1) SEGMENTO HOY / TODOS: texto siempre visible ========== */
+
+.dashboard-header ion-segment-button {
+  --color: #6b7280 !important;        
+  --color-checked: #ffffff !important; 
+  font-weight: 500;
 }
 
-/* ====== FIX SEARCHBAR ====== */
-ion-searchbar {
-  --background: #ffffff !important;
-  --color: #213549 !important;
-  --icon-color: #ff7b3a !important;
-  --placeholder-color: #6b7280 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-}
-
-/* ====== FIX SELECT Y ITEMS BLANCOS ====== */
-ion-item.filtro-item,
-ion-select {
-  --background: #ffffff !important;
-  --color: #213549 !important;
-  --text-color: #213549 !important;
-  --placeholder-color: #6b7280 !important;
-  border-radius: 10px !important;
-}
-
-/* Etiquetas internas */
-ion-item.filtro-item ion-label {
+/* Algunos temas usan el native part para el color, lo forzamos también */
+.dashboard-header ion-segment-button::part(native) {
   color: #6b7280 !important;
 }
 
-/* ====== FIX TARJETAS NEGRAS POR MODO OSCURO ====== */
-.servicio-card,
-.servicio-card * {
-  --background: #ffffff !important;
-  background: #ffffff !important;
-  color: #213549 !important;
+.dashboard-header ion-segment-button.ion-activated::part(native) {
+  color: #ffffff !important;
 }
 
-/* ICONOS DENTRO DE TARJETA */
-.servicio-card ion-icon {
-  color: #ff7b3a !important;
+/* ========== 2) SELECTS DE FILTROS Y ESTADO ========== */
+
+/* Color del texto y placeholder en los filtros superiores */
+.filtro-item ion-select {
+  color: #111827 !important;
+  --placeholder-color: #9ca3af !important;
 }
 
+/* Aplicar también a la parte interna (para algunas versiones de Ionic) */
+.filtro-item ion-select::part(text) {
+  color: #111827 !important;
+}
+
+.filtro-item ion-select::part(placeholder) {
+  color: #9ca3af !important;
+}
+
+/* Select de “Actualizar estado” dentro de la tarjeta */
+.servicio-estado-item ion-select {
+  color: #111827 !important;
+  --placeholder-color: #9ca3af !important;
+}
+
+.servicio-estado-item ion-select::part(text) {
+  color: #111827 !important;
+}
+
+.servicio-estado-item ion-select::part(placeholder) {
+  color: #9ca3af !important;
+}
+
+/* Por si acaso, también la searchbar */
+ion-searchbar {
+  --color: #111827 !important;
+  --placeholder-color: #9ca3af !important;
+}
+
+/* ========== 3) Badge de estado (opcional, por si se ve “desaparecido”) ========== */
+
+.servicio-header-right ion-badge {
+  --background: #111827;
+  --color: #ffffff;
+}

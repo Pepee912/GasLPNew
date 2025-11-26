@@ -20,8 +20,8 @@ export class LoginPage implements OnInit {
     this.access_token = this.act.snapshot.queryParams['access_token'];
     console.log(this.access_token);
   }
-  identifier: string = "callcenter"
-  password: string = "12345678"
+  identifier: string = ""
+  password: string = ""
 
   ngOnInit() {
     console.log("Cargando");
